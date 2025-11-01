@@ -34,7 +34,7 @@ class App {
       next();
     });
 
-    logger.info('✅ Middlewares initialized');
+    logger.info('Middlewares initialized');
   }
 
   private initializeRoutes(): void {

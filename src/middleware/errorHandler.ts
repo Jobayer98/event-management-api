@@ -16,7 +16,7 @@ export const errorHandler = (
   const message = error.message || 'Internal Server Error';
 
   // Log error with Winston
-  logger.error(`❌ ${req.method} ${req.url} - ${statusCode} - ${message}`, {
+  logger.error(`${req.method} ${req.url} - ${statusCode} - ${message}`, {
     error: error.message,
     stack: error.stack,
     url: req.url,
