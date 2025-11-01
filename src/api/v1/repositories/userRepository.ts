@@ -27,6 +27,23 @@ export class UserRepository {
   }
 
   /**
+   * Find user by email with password hash (for authentication)
+   */
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        passwordHash: true,
+        phone: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  /**
    * Find user by ID
    */
   async findById(id: string): Promise<User | null> {

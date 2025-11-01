@@ -33,3 +33,20 @@ export const registerUserSchema = z.object({
 });
 
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;
+
+// User login schema
+export const loginUserSchema = z.object({
+  email: z
+    .string()
+    .email('Invalid email format')
+    .max(150, 'Email must not exceed 150 characters')
+    .toLowerCase()
+    .trim(),
+
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .max(255, 'Password must not exceed 255 characters')
+});
+
+export type LoginUserInput = z.infer<typeof loginUserSchema>;

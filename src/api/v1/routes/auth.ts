@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { registerUser } from '../controllers/authController';
+import { registerUser, loginUser } from '../controllers/authController';
 import { validateBody } from '../../../middleware/validation';
-import { registerUserSchema } from '../../../schemas/auth';
+import { registerUserSchema, loginUserSchema } from '../../../schemas/auth';
 
 const router = Router();
 
@@ -11,5 +11,12 @@ const router = Router();
  * @access  Public
  */
 router.post('/register', validateBody(registerUserSchema), registerUser);
+
+/**
+ * @route   POST /api/v1/auth/login
+ * @desc    Login user
+ * @access  Public
+ */
+router.post('/login', validateBody(loginUserSchema), loginUser);
 
 export default router;

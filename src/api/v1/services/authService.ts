@@ -1,5 +1,5 @@
 import { userRepository, CreateUserData, UserResponse } from '../repositories/userRepository';
-import { hashPassword, generateToken } from '../../../utils/auth';
+import { hashPassword, generateToken, comparePassword } from '../../../utils/auth';
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
@@ -11,6 +11,16 @@ export interface RegisterUserData {
 }
 
 export interface RegisterResponse {
+  user: UserResponse;
+  token: string;
+}
+
+export interface LoginUserData {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
   user: UserResponse;
   token: string;
 }
@@ -112,6 +122,68 @@ export class AuthService {
       phone: user.phone,
       createdAt: user.createdAt,
     };
+  }
+
+  /**
+   * Login user with email and password
+   */
+  async loginUser(loginData: LoginUserData): Promise<LoginResponse> {
+    const { email, password } = loginData;
+
+    logger.info(`Login attempt for email: ${email}`);
+
+    try {
+      // Find user with password hash
+      const user = await userRepository.findByEmailWithPassword(email);
+
+      if (!user) {
+        logger.warn(`Login failed - user not found: ${email}`);
+        throw createError('Invalid email or password', 401);
+      }
+
+      // Compare password with hash
+      const isPasswordValid = await comparePassword(password, user.passwordHash);
+
+      if (!isPasswordValid) {
+        logger.warn(`Login failed - invalid password: ${email}`);
+        throw createError('Invalid email or password', 401);
+      }
+
+      // Generate JWT token
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+      });
+
+      // Prepare user response (exclude password hash)
+      const userResponse: UserResponse = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        createdAt: user.createdAt,
+      };
+
+      logger.info(`User logged in successfully: ${user.id} - ${email}`);
+
+      return {
+        user: userResponse,
+        token,
+      };
+
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Login error:', {
+        error: error.message,
+        email,
+      });
+
+      throw createError('Login failed', 500);
+    }
   }
 }
 

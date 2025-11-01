@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/authService';
 import { logger } from '../../../config';
-import { RegisterUserInput } from '../../../schemas/auth';
+import { RegisterUserInput, LoginUserInput } from '../../../schemas/auth';
 
 /**
  * Register a new user
@@ -32,6 +32,43 @@ export const registerUser = async (
 
   } catch (error: any) {
     logger.error('Registration controller error:', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body?.email,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Login user
+ * POST /api/v1/auth/login
+ */
+export const loginUser = async (
+  req: Request<{}, {}, LoginUserInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+
+    // Call the auth service to login the user
+    const result = await authService.loginUser({
+      email,
+      password,
+    });
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'User logged in successfully',
+      data: result,
+    });
+
+  } catch (error: any) {
+    logger.error('Login controller error:', {
       error: error.message,
       stack: error.stack,
       email: req.body?.email,
