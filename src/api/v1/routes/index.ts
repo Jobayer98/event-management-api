@@ -1,8 +1,9 @@
-// import { Router } from 'express';
-// import healtRoute from './health';
+import { Router } from 'express';
+import authRoutes from './auth';
 
-// const router = Router();
+const router = Router();
 
-// router.use(healtRoute)
+// Authentication routes
+router.use('/auth', authRoutes);
 
-// export default router;
+export default router;

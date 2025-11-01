@@ -1,5 +1,3 @@
-// import v1Routes from './routes'
+import v1Routes from './routes';
 
-// export  {
-//   v1Routes,
-// }
+export default v1Routes;
