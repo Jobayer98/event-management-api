@@ -1,5 +1,5 @@
 import { userRepository, CreateUserData, UserResponse } from '../repositories/userRepository';
-import { hashPassword, generateToken, comparePassword } from '../../../utils/auth';
+import { hashPassword, generateToken, comparePassword, generateResetToken, verifyResetToken } from '../../../utils/auth';
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
@@ -23,6 +23,15 @@ export interface LoginUserData {
 export interface LoginResponse {
   user: UserResponse;
   token: string;
+}
+
+export interface ResetPasswordRequestData {
+  email: string;
+}
+
+export interface ResetPasswordConfirmData {
+  token: string;
+  newPassword: string;
 }
 
 export class AuthService {
@@ -183,6 +192,100 @@ export class AuthService {
       });
 
       throw createError('Login failed', 500);
+    }
+  }
+
+  /**
+   * Request password reset - generate reset token
+   */
+  async requestPasswordReset(requestData: ResetPasswordRequestData): Promise<{ message: string; resetToken?: string }> {
+    const { email } = requestData;
+
+    logger.info(`Password reset requested for email: ${email}`);
+
+    try {
+      // Find user by email
+      const user = await userRepository.findByEmail(email);
+
+      if (!user) {
+        // For security, don't reveal if email exists or not
+        logger.warn(`Password reset requested for non-existent email: ${email}`);
+        return {
+          message: 'If the email exists, a password reset link has been sent',
+        };
+      }
+
+      // Generate reset token
+      const resetToken = generateResetToken({
+        userId: user.id,
+        email: user.email,
+      });
+
+      logger.info(`Password reset token generated for user: ${user.id} - ${email}`);
+
+      // In production, you would send this token via email
+      // For development/testing, we return it in the response
+      return {
+        message: 'If the email exists, a password reset link has been sent',
+        ...(process.env.NODE_ENV === 'development' && { resetToken }),
+      };
+
+    } catch (error: any) {
+      logger.error('Password reset request error:', {
+        error: error.message,
+        email,
+      });
+
+      // Always return the same message for security
+      return {
+        message: 'If the email exists, a password reset link has been sent',
+      };
+    }
+  }
+
+  /**
+   * Confirm password reset with token and new password
+   */
+  async confirmPasswordReset(confirmData: ResetPasswordConfirmData): Promise<{ message: string }> {
+    const { token, newPassword } = confirmData;
+
+    logger.info('Password reset confirmation attempt');
+
+    try {
+      // Verify reset token
+      const decoded = verifyResetToken(token);
+      const { userId, email } = decoded;
+
+      // Verify user still exists
+      const user = await userRepository.findById(userId);
+      if (!user) {
+        logger.warn(`Password reset attempted for non-existent user: ${userId}`);
+        throw createError('Invalid or expired reset token', 400);
+      }
+
+      // Hash new password
+      const passwordHash = await hashPassword(newPassword);
+
+      // Update user password
+      await userRepository.updatePassword(userId, passwordHash);
+
+      logger.info(`Password reset successful for user: ${userId} - ${email}`);
+
+      return {
+        message: 'Password has been reset successfully',
+      };
+
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Password reset confirmation error:', {
+        error: error.message,
+      });
+
+      throw createError('Invalid or expired reset token', 400);
     }
   }
 }

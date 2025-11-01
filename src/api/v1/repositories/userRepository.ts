@@ -131,6 +131,23 @@ export class UserRepository {
       },
     });
   }
+
+  /**
+   * Update user password by ID
+   */
+  async updatePassword(id: string, passwordHash: string): Promise<UserResponse> {
+    return await prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+      },
+    });
+  }
 }
 
 // Export singleton instance
