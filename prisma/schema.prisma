@@ -34,9 +34,6 @@ model Organizer {
   passwordHash String   @map("password_hash") @db.VarChar(255)
   phone        String?  @db.VarChar(20)
   createdAt    DateTime @default(now()) @map("created_at")
-  
-  // Relations
-  venues Venue[]
 
   @@index([email])
   @@index([createdAt])
@@ -45,7 +42,6 @@ model Organizer {
 
 model Venue {
   id           String     @id @default(uuid())
-  organizerId  String     @map("organizer_id")
   name         String     @db.VarChar(150)
   address      String?    @db.Text
   capacity     Int?
@@ -54,10 +50,8 @@ model Venue {
   createdAt    DateTime   @default(now()) @map("created_at")
   
   // Relations
-  organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   events    Event[]
 
-  @@index([organizerId])
   @@index([capacity])
   @@index([pricePerHour])
   @@index([createdAt])
