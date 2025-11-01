@@ -35,7 +35,7 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 /**
  * Generate a JWT token
  */
-export const generateToken = (payload: { userId: string; email: string }): string => {
+export const generateToken = (payload: { userId: string; email: string; role?: string }): string => {
   try {
     return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
   } catch (error) {
@@ -47,12 +47,9 @@ export const generateToken = (payload: { userId: string; email: string }): strin
 /**
  * Verify a JWT token
  */
-export const verifyToken = (token: string): { userId: string; email: string } => {
+export const verifyToken = (token: string): { userId: string; email: string; role?: string } => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      issuer: 'event-management-api',
-      audience: 'event-management-client',
-    }) as { userId: string; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; role?: string };
     
     return decoded;
   } catch (error) {
