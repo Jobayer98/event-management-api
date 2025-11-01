@@ -1,5 +1,6 @@
 import app from './app';
 import { logger, DatabaseConnection } from './config';
+import StartupService from './services/startupService';
 
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -11,6 +12,9 @@ async function startServer(): Promise<void> {
         // Connect to database
         await DatabaseConnection.connect();
         logger.info('📦 Database connection established');
+
+        // Initialize application (create admin, etc.)
+        await StartupService.initialize();
 
         // Start Express server
         const server = app.listen(PORT, 'localhost', () => {
