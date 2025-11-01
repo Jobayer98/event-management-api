@@ -13,6 +13,12 @@ export interface CreateEventData {
   status?: string;
 }
 
+export interface UpdateEventData {
+  peopleCount?: number;
+  mealId?: string | null;
+  totalCost?: number | null;
+}
+
 export interface EventResponse {
   id: string;
   userId: string;
@@ -316,6 +322,59 @@ export class EventRepository {
     return await prisma.event.count({
       where: whereClause,
     });
+  }
+
+  /**
+   * Update event by ID
+   */
+  async updateById(id: string, updateData: UpdateEventData): Promise<EventResponse> {
+    const event = await prisma.event.update({
+      where: { id },
+      data: updateData,
+      include: {
+        venue: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            capacity: true,
+            pricePerHour: true,
+          },
+        },
+        meal: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            pricePerPerson: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...event,
+      totalCost: event.totalCost ? Number(event.totalCost) : null,
+      venue: {
+        ...event.venue,
+        pricePerHour: Number(event.venue.pricePerHour),
+      },
+      meal: event.meal ? {
+        ...event.meal,
+        pricePerPerson: Number(event.meal.pricePerPerson),
+      } : null,
+    };
+  }
+
+  /**
+   * Check if event exists by ID
+   */
+  async existsById(id: string): Promise<boolean> {
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    return !!event;
   }
 }
 

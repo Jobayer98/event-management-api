@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { eventService } from '../services/eventService';
 import { logger } from '../../../config';
-import { CheckAvailabilityInput, CreateEventInput, EventQueryInput } from '../../../schemas/event';
+import { CheckAvailabilityInput, CreateEventInput, UpdateEventInput, EventQueryInput } from '../../../schemas/event';
 
 /**
  * Check venue availability for event booking
@@ -181,6 +181,52 @@ export const getEventById = async (
       error: error.message,
       stack: error.stack,
       eventId: req.params.id,
+      userId: (req as any).user?.userId,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Update event (people count and meal only)
+ * PUT /api/v1/events/:id
+ */
+export const updateEvent = async (
+  req: Request<{ id: string }, {}, UpdateEventInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Get user ID from JWT token
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      logger.warn('Event update attempted without user authentication');
+      return next({ statusCode: 401, message: 'Please log in to update your event. Authentication is required.' });
+    }
+
+    logger.info(`User ${userId} updating event ${id}`);
+
+    // Call the event service to update the event
+    const event = await eventService.updateEvent(id, userId, updateData);
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Event updated successfully',
+      data: event,
+    });
+
+  } catch (error: any) {
+    logger.error('Update event controller error:', {
+      error: error.message,
+      stack: error.stack,
+      eventId: req.params.id,
+      updateData: req.body,
       userId: (req as any).user?.userId,
     });
 

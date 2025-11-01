@@ -43,11 +43,32 @@ export const createEventSchema = z.object({
     .string()
     .uuid('Invalid venue ID format'),
   
-  mealId: z
-    .string()
-    .uuid('Invalid meal ID format')
-    .optional(),
-  
+  // Optional meal data - if provided, a new meal will be created
+  meal: z.object({
+    name: z
+      .string()
+      .min(2, 'Meal name must be at least 2 characters')
+      .max(100, 'Meal name must not exceed 100 characters')
+      .trim(),
+
+    type: z
+      .enum(['veg', 'nonveg', 'buffet'], {
+        message: 'Meal type must be one of: veg, nonveg, buffet'
+      })
+      .optional(),
+
+    pricePerPerson: z
+      .number()
+      .min(0, 'Price per person cannot be negative')
+      .max(9999.99, 'Price per person cannot exceed 9,999.99'),
+
+    description: z
+      .string()
+      .max(1000, 'Description must not exceed 1000 characters')
+      .trim()
+      .optional()
+  }).optional(),
+
   eventType: z
     .string()
     .min(2, 'Event type must be at least 2 characters')
@@ -90,6 +111,63 @@ export const createEventSchema = z.object({
 );
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
+
+// Update event schema (only allow updating people count and meal)
+export const updateEventSchema = z.object({
+  peopleCount: z
+    .number()
+    .int('People count must be a whole number')
+    .min(1, 'People count must be at least 1')
+    .max(10000, 'People count cannot exceed 10,000')
+    .optional(),
+
+  // Optional meal data - if provided, a new meal will be created
+  meal: z.object({
+    name: z
+      .string()
+      .min(2, 'Meal name must be at least 2 characters')
+      .max(100, 'Meal name must not exceed 100 characters')
+      .trim(),
+
+    type: z
+      .enum(['veg', 'nonveg', 'buffet'], {
+        message: 'Meal type must be one of: veg, nonveg, buffet'
+      })
+      .optional(),
+
+    pricePerPerson: z
+      .number()
+      .min(0, 'Price per person cannot be negative')
+      .max(9999.99, 'Price per person cannot exceed 9,999.99'),
+
+    description: z
+      .string()
+      .max(1000, 'Description must not exceed 1000 characters')
+      .trim()
+      .optional()
+  }).optional(),
+
+  // Set to null to remove meal from event
+  removeMeal: z.boolean().optional()
+}).refine(
+  (data) => {
+    // At least one field must be provided for update
+    return data.peopleCount !== undefined || data.meal !== undefined || data.removeMeal !== undefined;
+  },
+  {
+    message: 'At least one field (peopleCount, meal, or removeMeal) must be provided for update',
+  }
+).refine(
+  (data) => {
+    // Cannot provide both meal and removeMeal
+    return !(data.meal && data.removeMeal);
+  },
+  {
+    message: 'Cannot provide both meal data and removeMeal flag',
+  }
+);
+
+export type UpdateEventInput = z.infer<typeof updateEventSchema>;
 
 // Event query schema for listing user events
 export const eventQuerySchema = z.object({

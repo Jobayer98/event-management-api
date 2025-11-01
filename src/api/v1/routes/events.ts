@@ -3,11 +3,12 @@ import {
   checkAvailability,
   createEvent,
   getUserEvents,
-  getEventById
+  getEventById,
+  updateEvent
 } from '../controllers/eventController';
 import { validateBody } from '../../../middleware/validation';
 import { authenticateToken } from '../../../middleware/auth';
-import { checkAvailabilitySchema, createEventSchema } from '../../../schemas/event';
+import { checkAvailabilitySchema, createEventSchema, updateEventSchema } from '../../../schemas/event';
 
 const router = Router();
 
@@ -38,5 +39,12 @@ router.post('/', authenticateToken, validateBody(createEventSchema), createEvent
  * @access  Private (requires authentication)
  */
 router.get('/:id', authenticateToken, getEventById);
+
+/**
+ * @route   PUT /api/v1/events/:id
+ * @desc    Update event (people count and meal only)
+ * @access  Private (requires authentication)
+ */
+router.put('/:id', authenticateToken, validateBody(updateEventSchema), updateEvent);
 
 export default router;

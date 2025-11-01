@@ -1,5 +1,7 @@
-import { eventRepository, CreateEventData, EventResponse, EventFilters } from '../repositories/eventRepository';
+import { eventRepository, CreateEventData, EventResponse, EventFilters, UpdateEventData } from '../repositories/eventRepository';
 import { venueRepository } from '../repositories/venueRepository';
+import { mealRepository } from '../repositories/mealRepository';
+import { mealService } from './mealService';
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
@@ -29,11 +31,27 @@ export interface AvailabilityResponse {
 export interface CreateEventInput {
   userId: string;
   venueId: string;
-  mealId?: string;
+  meal?: {
+    name: string;
+    type?: string;
+    pricePerPerson: number;
+    description?: string;
+  };
   eventType: string;
   peopleCount: number;
   startTime: string;
   endTime: string;
+}
+
+export interface UpdateEventInput {
+  peopleCount?: number;
+  meal?: {
+    name: string;
+    type?: string;
+    pricePerPerson: number;
+    description?: string;
+  };
+  removeMeal?: boolean;
 }
 
 export interface EventListResponse {
@@ -125,7 +143,7 @@ export class EventService {
    * Create a new event booking
    */
   async createEvent(eventData: CreateEventInput): Promise<EventResponse> {
-    const { userId, venueId, mealId, eventType, peopleCount, startTime, endTime } = eventData;
+    const { userId, venueId, meal: mealData, eventType, peopleCount, startTime, endTime } = eventData;
 
     logger.info(`Creating event booking for user ${userId} at venue ${venueId}`);
 
@@ -158,18 +176,35 @@ export class EventService {
         throw createError('Venue is no longer available for the selected time slot. Please check availability again.', 409);
       }
 
-      // Calculate total cost (basic calculation - can be enhanced)
+      // Create meal if meal data is provided
+      let createdMeal = null;
+      let mealId = null;
+      if (mealData) {
+        logger.info(`Creating meal for event: ${mealData.name}`);
+        try {
+          createdMeal = await mealService.createMeal(mealData);
+          mealId = createdMeal.id;
+          logger.info(`Meal created successfully for event: ${createdMeal.id}`);
+        } catch (mealError: any) {
+          logger.error('Meal creation failed during event creation:', {
+            error: mealError.message,
+            mealData,
+          });
+          throw createError('Failed to create meal for your event. Please check meal details and try again.', 400);
+        }
+      }
+
+      // Calculate total cost
       const durationHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
       const venueCost = venue.pricePerHour * durationHours;
-      
-      // TODO: Add meal cost calculation when meal service is implemented
-      const totalCost = venueCost;
+      const mealCost = createdMeal ? createdMeal.pricePerPerson * peopleCount : 0;
+      const totalCost = venueCost + mealCost;
 
       // Prepare event data
       const createData: CreateEventData = {
         userId,
         venueId,
-        mealId: mealId || null,
+        mealId,
         eventType,
         peopleCount,
         startTime: startDateTime,
@@ -181,7 +216,7 @@ export class EventService {
       // Create event
       const event = await eventRepository.create(createData);
 
-      logger.info(`Event created successfully: ${event.id} for user ${userId}`);
+      logger.info(`Event created successfully: ${event.id} for user ${userId}${mealId ? ` with meal ${mealId}` : ''}`);
       return event;
 
     } catch (error: any) {
@@ -272,6 +307,126 @@ export class EventService {
     }
 
     return event;
+  }
+
+  /**
+   * Update event (only people count and meal)
+   */
+  async updateEvent(eventId: string, userId: string, updateData: UpdateEventInput): Promise<EventResponse> {
+    const { peopleCount, meal: mealData, removeMeal } = updateData;
+
+    logger.info(`User ${userId} updating event ${eventId}`);
+
+    try {
+      // Check if event exists and user owns it
+      const existingEvent = await eventRepository.findById(eventId);
+      if (!existingEvent) {
+        logger.warn(`Event update failed - not found: ${eventId}`);
+        throw createError('The requested event could not be found. It may have been cancelled or removed.', 404);
+      }
+
+      if (existingEvent.userId !== userId) {
+        logger.warn(`Unauthorized event update attempt by user ${userId} for event ${eventId}`);
+        throw createError('You can only update your own events. This event belongs to another user.', 403);
+      }
+
+      // Check if event can be updated (not in the past or already confirmed)
+      const now = new Date();
+      if (existingEvent.startTime <= now) {
+        logger.warn(`Event update failed - event already started: ${eventId}`);
+        throw createError('Cannot update an event that has already started or passed.', 400);
+      }
+
+      if (existingEvent.status === 'confirmed') {
+        logger.warn(`Event update failed - event already confirmed: ${eventId}`);
+        throw createError('Cannot update a confirmed event. Please contact support for changes.', 400);
+      }
+
+      // Validate people count against venue capacity
+      const finalPeopleCount = peopleCount || existingEvent.peopleCount;
+      if (existingEvent.venue.capacity && finalPeopleCount > existingEvent.venue.capacity) {
+        logger.warn(`Event update failed - people count exceeds venue capacity: ${finalPeopleCount} > ${existingEvent.venue.capacity}`);
+        throw createError(`Venue capacity is ${existingEvent.venue.capacity} people, but you requested ${finalPeopleCount} people`, 400);
+      }
+
+      // Handle meal updates
+      let newMealId = existingEvent.mealId;
+      let createdMeal = null;
+
+      if (removeMeal) {
+        // Remove meal from event
+        newMealId = null;
+        logger.info(`Removing meal from event ${eventId}`);
+      } else if (mealData) {
+        // Create new meal for event
+        logger.info(`Creating new meal for event update: ${mealData.name}`);
+        try {
+          createdMeal = await mealService.createMeal(mealData);
+          newMealId = createdMeal.id;
+          logger.info(`New meal created successfully for event update: ${createdMeal.id}`);
+        } catch (mealError: any) {
+          logger.error('Meal creation failed during event update:', {
+            error: mealError.message,
+            mealData,
+          });
+          throw createError('Failed to create meal for your event update. Please check meal details and try again.', 400);
+        }
+      }
+
+      // Recalculate total cost
+      const durationHours = (existingEvent.endTime.getTime() - existingEvent.startTime.getTime()) / (1000 * 60 * 60);
+      const venueCost = existingEvent.venue.pricePerHour * durationHours;
+
+      let mealCost = 0;
+      if (newMealId) {
+        if (createdMeal) {
+          // Use newly created meal
+          mealCost = createdMeal.pricePerPerson * finalPeopleCount;
+        } else if (existingEvent.meal) {
+          // Use existing meal (only people count changed)
+          mealCost = existingEvent.meal.pricePerPerson * finalPeopleCount;
+        }
+      }
+
+      const totalCost = venueCost + mealCost;
+
+      // Prepare update data
+      const updateEventData: UpdateEventData = {
+        ...(peopleCount !== undefined && { peopleCount }),
+        mealId: newMealId,
+        totalCost,
+      };
+
+      // Update event
+      const updatedEvent = await eventRepository.updateById(eventId, updateEventData);
+
+      logger.info(`Event updated successfully: ${eventId} by user ${userId}${newMealId ? ` with meal ${newMealId}` : ' (meal removed)'}`);
+      return updatedEvent;
+
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Event update error:', {
+        error: error.message,
+        eventId,
+        userId,
+      });
+
+      // Handle record not found errors
+      if (error.code === 'P2025') {
+        throw createError('The requested event could not be found. It may have been cancelled or removed.', 404);
+      }
+
+      // Handle other database errors
+      if (error.code?.startsWith('P')) {
+        throw createError('Unable to update event at this time. Please try again later.', 500);
+      }
+
+      throw createError('Unable to update event at this time. Please try again later.', 500);
+    }
   }
 }
 
