@@ -29,7 +29,10 @@ export const errorHandler = (
     success: false,
     error: {
       message,
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+      ...(process.env.NODE_ENV === 'development' && {
+        stack: error.stack,
+        details: error.message
+      }),
     },
   });
 };
