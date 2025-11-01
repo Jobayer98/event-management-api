@@ -2,6 +2,7 @@ import { Router } from 'express';
 import authRoutes from './auth';
 import organizerRoutes from './organizer';
 import venueRoutes from './venues';
+import eventRoutes from './events';
 
 const router = Router();
 
@@ -13,5 +14,8 @@ router.use('/organizer', organizerRoutes);
 
 // Venue routes
 router.use('/venues', venueRoutes);
+
+// Event routes
+router.use('/events', eventRoutes);
 
 export default router;
