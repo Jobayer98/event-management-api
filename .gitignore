@@ -1,8 +1,9 @@
 node_modules/
-.kiro
-.env*
-.DS_Store
-.idea/
-.vscode/
-build/
 dist/
+.kiro
+.env
+.env.local
+.env.production
+*.log
+.DS_Store
+Thumbs.db
