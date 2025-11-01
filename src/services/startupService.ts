@@ -7,14 +7,14 @@ export class StartupService {
    */
   static async initialize(): Promise<void> {
     try {
-      logger.info('🚀 Initializing application...');
+      logger.info('Initializing application...');
 
       // Create default admin organizer
       await organizerService.createDefaultAdmin();
 
-      logger.info('✅ Application initialization completed');
+      logger.info('Application initialization completed');
     } catch (error: any) {
-      logger.error('❌ Application initialization failed:', error);
+      logger.error('Application initialization failed:', error);
       throw error;
     }
   }

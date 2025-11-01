@@ -101,7 +101,7 @@ export class OrganizerService {
       const organizer = await organizerRepository.findByEmailWithPassword(email);
       
       if (!organizer) {
-        logger.warn(`❌ Organizer login failed - organizer not found: ${email}`);
+        logger.warn(`Organizer login failed - organizer not found: ${email}`);
         throw createError('Invalid email or password', 401);
       }
 
@@ -109,7 +109,7 @@ export class OrganizerService {
       const isPasswordValid = await comparePassword(password, organizer.passwordHash);
       
       if (!isPasswordValid) {
-        logger.warn(`❌ Organizer login failed - invalid password: ${email}`);
+        logger.warn(`Organizer login failed - invalid password: ${email}`);
         throw createError('Invalid email or password', 401);
       }
 
@@ -129,7 +129,7 @@ export class OrganizerService {
         createdAt: organizer.createdAt,
       };
 
-      logger.info(`✅ Organizer logged in successfully: ${organizer.id} - ${email}`);
+      logger.info(`Organizer logged in successfully: ${organizer.id} - ${email}`);
 
       return {
         organizer: organizerResponse,
@@ -196,17 +196,17 @@ export class OrganizerService {
       const adminPassword = process.env.ADMIN_PASSWORD || 'Admin123!@#';
       const adminName = process.env.ADMIN_NAME || 'System Administrator';
 
-      logger.info(`🔍 Checking for existing admin with email: ${adminEmail}`);
+      logger.info(`Checking for existing admin with email: ${adminEmail}`);
 
       // Check if admin already exists
       const existingAdmin = await organizerRepository.findByEmail(adminEmail);
       
       if (existingAdmin) {
-        logger.info(`✅ Default admin organizer already exists: ${adminEmail} (ID: ${existingAdmin.id})`);
+        logger.info(`Default admin organizer already exists: ${adminEmail} (ID: ${existingAdmin.id})`);
         return;
       }
 
-      logger.info(`🔨 Creating default admin organizer: ${adminEmail}`);
+      logger.info(`Creating default admin organizer: ${adminEmail}`);
 
       // Create default admin
       const result = await this.registerOrganizer({
@@ -215,7 +215,7 @@ export class OrganizerService {
         password: adminPassword,
       });
 
-      logger.info(`✅ Default admin organizer created successfully: ${adminEmail} (ID: ${result.organizer.id})`);
+      logger.info(`Default admin organizer created successfully: ${adminEmail} (ID: ${result.organizer.id})`);
     } catch (error: any) {
       logger.error('Failed to create default admin organizer:', error);
     }

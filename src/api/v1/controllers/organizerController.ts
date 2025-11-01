@@ -54,7 +54,7 @@ export const loginOrganizer = async (
   try {
     const { email, password } = req.body;
 
-    logger.info(`🔐 Organizer login attempt: ${email}`);
+    logger.info(`Organizer login attempt: ${email}`);
 
     // Call the organizer service to login the organizer
     const result = await organizerService.loginOrganizer({
@@ -62,7 +62,7 @@ export const loginOrganizer = async (
       password,
     });
 
-    logger.info(`✅ Organizer login successful: ${email}`);
+    logger.info(`Organizer login successful: ${email}`);
 
     // Return success response
     res.status(200).json({
@@ -72,7 +72,7 @@ export const loginOrganizer = async (
     });
 
   } catch (error: any) {
-    logger.error('❌ Organizer login controller error:', {
+    logger.error('Organizer login controller error:', {
       error: error.message,
       stack: error.stack,
       email: req.body?.email,
