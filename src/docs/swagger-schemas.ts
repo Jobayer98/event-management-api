@@ -257,4 +257,168 @@
  *       required:
  *         - success
  *         - message
+ *
+ *     # Event Schemas
+ *     Event:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         eventType:
+ *           type: string
+ *           example: "Wedding Reception"
+ *           description: "Type of event being organized"
+ *         peopleCount:
+ *           type: integer
+ *           example: 150
+ *           description: "Number of attendees"
+ *         status:
+ *           type: string
+ *           enum: [pending, confirmed, cancelled]
+ *           example: "confirmed"
+ *           description: "Current status of the event"
+ *         startTime:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-12-25T10:00:00.000Z"
+ *           description: "Event start time"
+ *         endTime:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-12-25T18:00:00.000Z"
+ *           description: "Event end time"
+ *         venue:
+ *           $ref: '#/components/schemas/Venue'
+ *         meal:
+ *           allOf:
+ *             - $ref: '#/components/schemas/Meal'
+ *           nullable: true
+ *           description: "Associated meal (optional)"
+ *         user:
+ *           $ref: '#/components/schemas/User'
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *       required:
+ *         - id
+ *         - eventType
+ *         - peopleCount
+ *         - status
+ *         - startTime
+ *         - endTime
+ *         - venue
+ *         - user
+ *         - createdAt
+ *         - updatedAt
+ *
+ *     # Meal Schemas
+ *     Meal:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         name:
+ *           type: string
+ *           example: "Deluxe Wedding Buffet"
+ *           description: "Name of the meal"
+ *         type:
+ *           type: string
+ *           enum: [veg, nonveg, buffet]
+ *           example: "buffet"
+ *           description: "Type of meal service"
+ *         pricePerPerson:
+ *           type: number
+ *           example: 45.99
+ *           description: "Cost per person for the meal"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           example: "International cuisine buffet with live cooking stations"
+ *           description: "Detailed description of the meal"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *       required:
+ *         - id
+ *         - name
+ *         - pricePerPerson
+ *         - createdAt
+ *         - updatedAt
+ *
+ *     # Venue Schema (referenced by Event)
+ *     Venue:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "456e7890-e89b-12d3-a456-426614174001"
+ *         name:
+ *           type: string
+ *           example: "Grand Ballroom"
+ *         location:
+ *           type: string
+ *           example: "Downtown Convention Center"
+ *         capacity:
+ *           type: integer
+ *           example: 200
+ *         pricePerHour:
+ *           type: number
+ *           example: 150.00
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *       required:
+ *         - id
+ *         - name
+ *         - location
+ *         - capacity
+ *         - pricePerHour
+ *         - createdAt
+ *         - updatedAt
+ *
+ *     # Pagination Schema
+ *     Pagination:
+ *       type: object
+ *       properties:
+ *         page:
+ *           type: integer
+ *           example: 1
+ *           description: "Current page number"
+ *         limit:
+ *           type: integer
+ *           example: 10
+ *           description: "Number of items per page"
+ *         total:
+ *           type: integer
+ *           example: 25
+ *           description: "Total number of items"
+ *         pages:
+ *           type: integer
+ *           example: 3
+ *           description: "Total number of pages"
+ *       required:
+ *         - page
+ *         - limit
+ *         - total
+ *         - pages
  */

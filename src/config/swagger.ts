@@ -183,12 +183,12 @@ const swaggerDefinition: SwaggerDefinition = {
       description: 'User authentication and authorization endpoints'
     },
     {
-      name: 'Users',
-      description: 'User management endpoints'
+      name: 'Events',
+      description: 'Event booking and management endpoints'
     },
     {
-      name: 'Events',
-      description: 'Event management endpoints'
+      name: 'Meals',
+      description: 'Meal options and catering management endpoints'
     },
     {
       name: 'Venues',
@@ -197,6 +197,10 @@ const swaggerDefinition: SwaggerDefinition = {
     {
       name: 'Organizers',
       description: 'Organizer management endpoints'
+    },
+    {
+      name: 'Users',
+      description: 'User management endpoints'
     }
   ]
 };
