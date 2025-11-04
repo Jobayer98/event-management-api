@@ -1,5 +1,29 @@
 import { z } from 'zod';
 
+// Operating hours schema
+const operatingHoursSchema = z.object({
+  monday: z.object({ open: z.string(), close: z.string() }).optional(),
+  tuesday: z.object({ open: z.string(), close: z.string() }).optional(),
+  wednesday: z.object({ open: z.string(), close: z.string() }).optional(),
+  thursday: z.object({ open: z.string(), close: z.string() }).optional(),
+  friday: z.object({ open: z.string(), close: z.string() }).optional(),
+  saturday: z.object({ open: z.string(), close: z.string() }).optional(),
+  sunday: z.object({ open: z.string(), close: z.string() }).optional(),
+}).optional();
+
+// Facilities and amenities arrays
+const facilitiesEnum = z.enum([
+  'parking', 'ac', 'wifi', 'sound_system', 'lighting', 'stage', 'kitchen',
+  'restrooms', 'wheelchair_accessible', 'projector', 'elevator', 'garden'
+]);
+
+const amenitiesEnum = z.enum([
+  'bridal_room', 'groom_room', 'vip_lounge', 'dance_floor', 'bar_area',
+  'outdoor_space', 'gazebo', 'fountain', 'conference_rooms', 'break_out_areas',
+  'business_center', 'city_view', 'sunset_view', 'heritage_architecture',
+  'vintage_decor', 'grand_staircase', 'courtyard'
+]);
+
 // Create venue schema
 export const createVenueSchema = z.object({
   name: z
@@ -8,30 +32,142 @@ export const createVenueSchema = z.object({
     .max(150, 'Venue name must not exceed 150 characters')
     .trim(),
   
+  description: z
+    .string()
+    .max(2000, 'Description must not exceed 2000 characters')
+    .trim()
+    .optional(),
+
+  // Location Details
   address: z
     .string()
     .min(5, 'Address must be at least 5 characters')
     .max(500, 'Address must not exceed 500 characters')
+    .trim(),
+
+  city: z
+    .string()
+    .min(2, 'City must be at least 2 characters')
+    .max(100, 'City must not exceed 100 characters')
+    .trim(),
+
+  state: z
+    .string()
+    .min(2, 'State must be at least 2 characters')
+    .max(100, 'State must not exceed 100 characters')
+    .trim(),
+
+  zipCode: z
+    .string()
+    .max(20, 'Zip code must not exceed 20 characters')
     .trim()
     .optional(),
-  
+
+  country: z
+    .string()
+    .max(100, 'Country must not exceed 100 characters')
+    .trim()
+    .default('Bangladesh'),
+
+  latitude: z
+    .number()
+    .min(-90, 'Latitude must be between -90 and 90')
+    .max(90, 'Latitude must be between -90 and 90')
+    .optional(),
+
+  longitude: z
+    .number()
+    .min(-180, 'Longitude must be between -180 and 180')
+    .max(180, 'Longitude must be between -180 and 180')
+    .optional(),
+
+  // Venue Details
   capacity: z
     .number()
     .int('Capacity must be a whole number')
     .min(1, 'Capacity must be at least 1')
-    .max(10000, 'Capacity cannot exceed 10,000')
+    .max(10000, 'Capacity cannot exceed 10,000'),
+
+  area: z
+    .number()
+    .min(0, 'Area cannot be negative')
+    .max(999999.99, 'Area cannot exceed 999,999.99 sq ft')
     .optional(),
   
+  venueType: z
+    .enum(['indoor', 'outdoor', 'hybrid'], {
+      message: 'Venue type must be one of: indoor, outdoor, hybrid'
+    }),
+
+  // Pricing
   pricePerHour: z
     .number()
     .min(0, 'Price per hour cannot be negative')
     .max(999999.99, 'Price per hour cannot exceed 999,999.99'),
   
-  description: z
+  minimumHours: z
+    .number()
+    .int('Minimum hours must be a whole number')
+    .min(1, 'Minimum hours must be at least 1')
+    .max(24, 'Minimum hours cannot exceed 24')
+    .default(4),
+
+  securityDeposit: z
+    .number()
+    .min(0, 'Security deposit cannot be negative')
+    .max(999999.99, 'Security deposit cannot exceed 999,999.99')
+    .optional(),
+
+  // Facilities & Amenities
+  facilities: z
+    .array(facilitiesEnum)
+    .default([]),
+
+  amenities: z
+    .array(amenitiesEnum)
+    .default([]),
+
+  // Services
+  cateringAllowed: z.boolean().default(true),
+  decorationAllowed: z.boolean().default(true),
+  alcoholAllowed: z.boolean().default(false),
+  smokingAllowed: z.boolean().default(false),
+  petFriendly: z.boolean().default(false),
+
+  // Media
+  images: z
+    .array(z.string().url('Each image must be a valid URL'))
+    .default([]),
+
+  virtualTourUrl: z
     .string()
-    .max(1000, 'Description must not exceed 1000 characters')
+    .url('Virtual tour URL must be a valid URL')
+    .optional(),
+
+  // Contact & Availability
+  contactPerson: z
+    .string()
+    .max(100, 'Contact person name must not exceed 100 characters')
     .trim()
-    .optional()
+    .optional(),
+
+  contactPhone: z
+    .string()
+    .max(20, 'Contact phone must not exceed 20 characters')
+    .regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number format')
+    .optional(),
+
+  contactEmail: z
+    .string()
+    .email('Invalid email format')
+    .max(150, 'Contact email must not exceed 150 characters')
+    .optional(),
+
+  // Operating Hours
+  operatingHours: operatingHoursSchema,
+
+  // Status
+  isActive: z.boolean().default(true)
 });
 
 export type CreateVenueInput = z.infer<typeof createVenueSchema>;
@@ -45,6 +181,13 @@ export const updateVenueSchema = z.object({
     .trim()
     .optional(),
   
+  description: z
+    .string()
+    .max(2000, 'Description must not exceed 2000 characters')
+    .trim()
+    .optional(),
+
+  // Location Details
   address: z
     .string()
     .min(5, 'Address must be at least 5 characters')
@@ -52,6 +195,45 @@ export const updateVenueSchema = z.object({
     .trim()
     .optional(),
   
+  city: z
+    .string()
+    .min(2, 'City must be at least 2 characters')
+    .max(100, 'City must not exceed 100 characters')
+    .trim()
+    .optional(),
+
+  state: z
+    .string()
+    .min(2, 'State must be at least 2 characters')
+    .max(100, 'State must not exceed 100 characters')
+    .trim()
+    .optional(),
+
+  zipCode: z
+    .string()
+    .max(20, 'Zip code must not exceed 20 characters')
+    .trim()
+    .optional(),
+
+  country: z
+    .string()
+    .max(100, 'Country must not exceed 100 characters')
+    .trim()
+    .optional(),
+
+  latitude: z
+    .number()
+    .min(-90, 'Latitude must be between -90 and 90')
+    .max(90, 'Latitude must be between -90 and 90')
+    .optional(),
+
+  longitude: z
+    .number()
+    .min(-180, 'Longitude must be between -180 and 180')
+    .max(180, 'Longitude must be between -180 and 180')
+    .optional(),
+
+  // Venue Details
   capacity: z
     .number()
     .int('Capacity must be a whole number')
@@ -59,17 +241,88 @@ export const updateVenueSchema = z.object({
     .max(10000, 'Capacity cannot exceed 10,000')
     .optional(),
   
+  area: z
+    .number()
+    .min(0, 'Area cannot be negative')
+    .max(999999.99, 'Area cannot exceed 999,999.99 sq ft')
+    .optional(),
+
+  venueType: z
+    .enum(['indoor', 'outdoor', 'hybrid'], {
+      message: 'Venue type must be one of: indoor, outdoor, hybrid'
+    })
+    .optional(),
+
+  // Pricing
   pricePerHour: z
     .number()
     .min(0, 'Price per hour cannot be negative')
     .max(999999.99, 'Price per hour cannot exceed 999,999.99')
     .optional(),
   
-  description: z
+  minimumHours: z
+    .number()
+    .int('Minimum hours must be a whole number')
+    .min(1, 'Minimum hours must be at least 1')
+    .max(24, 'Minimum hours cannot exceed 24')
+    .optional(),
+
+  securityDeposit: z
+    .number()
+    .min(0, 'Security deposit cannot be negative')
+    .max(999999.99, 'Security deposit cannot exceed 999,999.99')
+    .optional(),
+
+  // Facilities & Amenities
+  facilities: z
+    .array(facilitiesEnum)
+    .optional(),
+
+  amenities: z
+    .array(amenitiesEnum)
+    .optional(),
+
+  // Services
+  cateringAllowed: z.boolean().optional(),
+  decorationAllowed: z.boolean().optional(),
+  alcoholAllowed: z.boolean().optional(),
+  smokingAllowed: z.boolean().optional(),
+  petFriendly: z.boolean().optional(),
+
+  // Media
+  images: z
+    .array(z.string().url('Each image must be a valid URL'))
+    .optional(),
+
+  virtualTourUrl: z
     .string()
-    .max(1000, 'Description must not exceed 1000 characters')
+    .url('Virtual tour URL must be a valid URL')
+    .optional(),
+
+  // Contact & Availability
+  contactPerson: z
+    .string()
+    .max(100, 'Contact person name must not exceed 100 characters')
     .trim()
-    .optional()
+    .optional(),
+
+  contactPhone: z
+    .string()
+    .max(20, 'Contact phone must not exceed 20 characters')
+    .regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number format')
+    .optional(),
+
+  contactEmail: z
+    .string()
+    .email('Invalid email format')
+    .max(150, 'Contact email must not exceed 150 characters')
+    .optional(),
+
+  // Operating Hours
+  operatingHours: operatingHoursSchema,
+
+  // Status
+  isActive: z.boolean().optional()
 });
 
 export type UpdateVenueInput = z.infer<typeof updateVenueSchema>;
@@ -100,6 +353,16 @@ export const venueQuerySchema = z.object({
     .trim()
     .optional(),
   
+  city: z
+    .string()
+    .max(100, 'City must not exceed 100 characters')
+    .trim()
+    .optional(),
+
+  venueType: z
+    .enum(['indoor', 'outdoor', 'hybrid'])
+    .optional(),
+
   minCapacity: z
     .string()
     .regex(/^\d+$/, 'Min capacity must be a number')
@@ -122,7 +385,32 @@ export const venueQuerySchema = z.object({
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, 'Max price must be a valid number')
     .transform(Number)
+    .optional(),
+
+  facilities: z
+    .string()
+    .transform(str => str.split(',').map(f => f.trim()))
+    .optional(),
+
+  amenities: z
+    .string()
+    .transform(str => str.split(',').map(a => a.trim()))
+    .optional(),
+
+  isActive: z
+    .string()
+    .transform(str => str.toLowerCase() === 'true')
+    .optional(),
+
+  sortBy: z
+    .enum(['name', 'capacity', 'pricePerHour', 'rating', 'createdAt'])
     .optional()
+    .default('createdAt'),
+
+  sortOrder: z
+    .enum(['asc', 'desc'])
+    .optional()
+    .default('desc')
 });
 
 export type VenueQueryInput = z.infer<typeof venueQuerySchema>;
