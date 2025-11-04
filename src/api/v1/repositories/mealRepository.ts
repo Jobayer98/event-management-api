@@ -2,24 +2,81 @@ import { prisma } from '../../../config';
 
 export interface CreateMealData {
   name: string;
-  type?: string | null;
-  pricePerPerson: number;
   description?: string | null;
+  type: string;
+  cuisine?: string | null;
+  servingStyle: string;
+  pricePerPerson: number;
+  minimumGuests?: number;
+  menuItems?: any;
+  beverages?: string[];
+  specialDietary?: string[];
+  serviceHours?: any;
+  staffIncluded?: boolean;
+  equipmentIncluded?: boolean;
+  images?: string[];
+  isActive?: boolean;
+  isPopular?: boolean;
 }
 
 export interface UpdateMealData {
   name?: string;
-  type?: string | null;
-  pricePerPerson?: number;
   description?: string | null;
+  type?: string;
+  cuisine?: string | null;
+  servingStyle?: string;
+  pricePerPerson?: number;
+  minimumGuests?: number;
+  menuItems?: any;
+  beverages?: string[];
+  specialDietary?: string[];
+  serviceHours?: any;
+  staffIncluded?: boolean;
+  equipmentIncluded?: boolean;
+  images?: string[];
+  isActive?: boolean;
+  isPopular?: boolean;
 }
 
 export interface MealResponse {
   id: string;
   name: string;
-  type: string | null;
-  pricePerPerson: number;
   description: string | null;
+  type: string;
+  cuisine: string | null;
+  servingStyle: string;
+  pricePerPerson: number;
+  minimumGuests: number;
+  menuItems: any;
+  beverages: string[];
+  specialDietary: string[];
+  serviceHours: any;
+  staffIncluded: boolean;
+  equipmentIncluded: boolean;
+  images: string[];
+  isActive: boolean;
+  isPopular: boolean;
+  rating: number | null;
+  totalReviews: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MealListResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  cuisine: string | null;
+  servingStyle: string;
+  pricePerPerson: number;
+  minimumGuests: number;
+  specialDietary: string[];
+  rating: number | null;
+  totalReviews: number;
+  images: string[];
+  isPopular: boolean;
+  createdAt: Date;
 }
 
 export interface MealFilters {
@@ -36,18 +93,12 @@ export class MealRepository {
   async create(mealData: CreateMealData): Promise<MealResponse> {
     const meal = await prisma.meal.create({
       data: mealData,
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        pricePerPerson: true,
-        description: true,
-      },
     });
 
     return {
       ...meal,
       pricePerPerson: Number(meal.pricePerPerson),
+      rating: meal.rating ? Number(meal.rating) : null,
     };
   }
 
@@ -57,13 +108,6 @@ export class MealRepository {
   async findById(id: string): Promise<MealResponse | null> {
     const meal = await prisma.meal.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        pricePerPerson: true,
-        description: true,
-      },
     });
 
     if (!meal) return null;
@@ -71,6 +115,7 @@ export class MealRepository {
     return {
       ...meal,
       pricePerPerson: Number(meal.pricePerPerson),
+      rating: meal.rating ? Number(meal.rating) : null,
     };
   }
 
@@ -81,18 +126,12 @@ export class MealRepository {
     const meal = await prisma.meal.update({
       where: { id },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        pricePerPerson: true,
-        description: true,
-      },
     });
 
     return {
       ...meal,
       pricePerPerson: Number(meal.pricePerPerson),
+      rating: meal.rating ? Number(meal.rating) : null,
     };
   }
 
@@ -106,13 +145,13 @@ export class MealRepository {
   }
 
   /**
-   * Get meals with pagination and filters
+   * Get meals with pagination and filters (list view - essential data only)
    */
   async findMany(
     skip: number = 0,
     take: number = 10,
     filters: MealFilters = {}
-  ): Promise<MealResponse[]> {
+  ): Promise<MealListResponse[]> {
     const { search, type, minPrice, maxPrice } = filters;
 
     const whereClause: any = {};
@@ -148,9 +187,18 @@ export class MealRepository {
       select: {
         id: true,
         name: true,
-        type: true,
-        pricePerPerson: true,
         description: true,
+        type: true,
+        cuisine: true,
+        servingStyle: true,
+        pricePerPerson: true,
+        minimumGuests: true,
+        specialDietary: true,
+        rating: true,
+        totalReviews: true,
+        images: true,
+        isPopular: true,
+        createdAt: true,
       },
       orderBy: {
         name: 'asc',
@@ -160,6 +208,7 @@ export class MealRepository {
     return meals.map(meal => ({
       ...meal,
       pricePerPerson: Number(meal.pricePerPerson),
+      rating: meal.rating ? Number(meal.rating) : null,
     }));
   }
 

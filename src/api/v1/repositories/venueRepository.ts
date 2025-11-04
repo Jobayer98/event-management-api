@@ -1,29 +1,118 @@
 import { prisma } from '../../../config';
-import { Venue } from '@prisma/client';
 
 export interface CreateVenueData {
   name: string;
-  address?: string | null;
-  capacity?: number | null;
-  pricePerHour: number;
   description?: string | null;
+  address: string;
+  city: string;
+  state: string;
+  zipCode?: string | null;
+  country?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  capacity: number;
+  area?: number | null;
+  venueType: string;
+  pricePerHour: number;
+  minimumHours?: number;
+  securityDeposit?: number | null;
+  facilities?: string[];
+  amenities?: string[];
+  cateringAllowed?: boolean;
+  decorationAllowed?: boolean;
+  alcoholAllowed?: boolean;
+  smokingAllowed?: boolean;
+  petFriendly?: boolean;
+  images?: string[];
+  virtualTourUrl?: string | null;
+  contactPerson?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  operatingHours?: any;
+  isActive?: boolean;
 }
 
 export interface UpdateVenueData {
   name?: string;
-  address?: string | null;
-  capacity?: number | null;
-  pricePerHour?: number;
   description?: string | null;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string | null;
+  country?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  capacity?: number;
+  area?: number | null;
+  venueType?: string;
+  pricePerHour?: number;
+  minimumHours?: number;
+  securityDeposit?: number | null;
+  facilities?: string[];
+  amenities?: string[];
+  cateringAllowed?: boolean;
+  decorationAllowed?: boolean;
+  alcoholAllowed?: boolean;
+  smokingAllowed?: boolean;
+  petFriendly?: boolean;
+  images?: string[];
+  virtualTourUrl?: string | null;
+  contactPerson?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  operatingHours?: any;
+  isActive?: boolean;
 }
 
 export interface VenueResponse {
   id: string;
   name: string;
-  address: string | null;
-  capacity: number | null;
-  pricePerHour: number;
   description: string | null;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string | null;
+  country: string;
+  latitude: number | null;
+  longitude: number | null;
+  capacity: number;
+  area: number | null;
+  venueType: string;
+  pricePerHour: number;
+  minimumHours: number;
+  securityDeposit: number | null;
+  facilities: string[];
+  amenities: string[];
+  cateringAllowed: boolean;
+  decorationAllowed: boolean;
+  alcoholAllowed: boolean;
+  smokingAllowed: boolean;
+  petFriendly: boolean;
+  images: string[];
+  virtualTourUrl: string | null;
+  contactPerson: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  operatingHours: any;
+  isActive: boolean;
+  rating: number | null;
+  totalReviews: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface VenueListResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  address: string;
+  city: string;
+  capacity: number;
+  venueType: string;
+  pricePerHour: number;
+  rating: number | null;
+  totalReviews: number;
+  images: string[];
   createdAt: Date;
 }
 
@@ -41,21 +130,17 @@ export class VenueRepository {
    */
   async create(venueData: CreateVenueData): Promise<VenueResponse> {
     const venue = await prisma.venue.create({
-      data: venueData as any, // Type assertion to bypass Prisma client type mismatch
-      select: {
-        id: true,
-        name: true,
-        address: true,
-        capacity: true,
-        pricePerHour: true,
-        description: true,
-        createdAt: true,
-      },
+      data: venueData,
     });
 
     return {
       ...venue,
       pricePerHour: Number(venue.pricePerHour),
+      latitude: venue.latitude ? Number(venue.latitude) : null,
+      longitude: venue.longitude ? Number(venue.longitude) : null,
+      area: venue.area ? Number(venue.area) : null,
+      securityDeposit: venue.securityDeposit ? Number(venue.securityDeposit) : null,
+      rating: venue.rating ? Number(venue.rating) : null,
     };
   }
 
@@ -65,15 +150,6 @@ export class VenueRepository {
   async findById(id: string): Promise<VenueResponse | null> {
     const venue = await prisma.venue.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        address: true,
-        capacity: true,
-        pricePerHour: true,
-        description: true,
-        createdAt: true,
-      },
     });
 
     if (!venue) return null;
@@ -81,6 +157,11 @@ export class VenueRepository {
     return {
       ...venue,
       pricePerHour: Number(venue.pricePerHour),
+      latitude: venue.latitude ? Number(venue.latitude) : null,
+      longitude: venue.longitude ? Number(venue.longitude) : null,
+      area: venue.area ? Number(venue.area) : null,
+      securityDeposit: venue.securityDeposit ? Number(venue.securityDeposit) : null,
+      rating: venue.rating ? Number(venue.rating) : null,
     };
   }
 
@@ -91,20 +172,16 @@ export class VenueRepository {
     const venue = await prisma.venue.update({
       where: { id },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        address: true,
-        capacity: true,
-        pricePerHour: true,
-        description: true,
-        createdAt: true,
-      },
     });
 
     return {
       ...venue,
       pricePerHour: Number(venue.pricePerHour),
+      latitude: venue.latitude ? Number(venue.latitude) : null,
+      longitude: venue.longitude ? Number(venue.longitude) : null,
+      area: venue.area ? Number(venue.area) : null,
+      securityDeposit: venue.securityDeposit ? Number(venue.securityDeposit) : null,
+      rating: venue.rating ? Number(venue.rating) : null,
     };
   }
 
@@ -118,13 +195,13 @@ export class VenueRepository {
   }
 
   /**
-   * Get venues with pagination and filters
+   * Get venues with pagination and filters (list view - essential data only)
    */
   async findMany(
     skip: number = 0,
     take: number = 10,
     filters: VenueFilters = {}
-  ): Promise<VenueResponse[]> {
+  ): Promise<VenueListResponse[]> {
     const { search, minCapacity, maxCapacity, minPrice, maxPrice } = filters;
 
     const whereClause: any = {};
@@ -166,10 +243,15 @@ export class VenueRepository {
       select: {
         id: true,
         name: true,
-        address: true,
-        capacity: true,
-        pricePerHour: true,
         description: true,
+        address: true,
+        city: true,
+        capacity: true,
+        venueType: true,
+        pricePerHour: true,
+        rating: true,
+        totalReviews: true,
+        images: true,
         createdAt: true,
       },
       orderBy: {
@@ -180,6 +262,7 @@ export class VenueRepository {
     return venues.map(venue => ({
       ...venue,
       pricePerHour: Number(venue.pricePerHour),
+      rating: venue.rating ? Number(venue.rating) : null,
     }));
   }
 
