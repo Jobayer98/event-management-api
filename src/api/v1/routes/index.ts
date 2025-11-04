@@ -10,8 +10,8 @@ const router = Router();
 // Authentication routes
 router.use('/auth', authRoutes);
 
-// Organizer routes
-router.use('/organizer', organizerRoutes);
+// Admin routes
+router.use('/admin', organizerRoutes);
 
 // Venue routes
 router.use('/venues', venueRoutes);

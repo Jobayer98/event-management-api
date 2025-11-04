@@ -1,37 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
 import { organizerService } from '../services/organizerService';
 import { logger } from '../../../config';
-import { RegisterOrganizerInput, LoginOrganizerInput } from '../../../schemas/auth';
+import { LoginOrganizerInput, UpdateAdminProfileInput, UpdateAdminPasswordInput } from '../../../schemas/auth';
 
 /**
- * Register a new organizer
- * POST /api/v1/organizer/register
+ * Login admin
+ * POST /api/v1/admin/login
  */
-export const registerOrganizer = async (
-  req: Request<{}, {}, RegisterOrganizerInput>,
+export const loginAdmin = async (
+  req: Request<{}, {}, LoginOrganizerInput>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { email, password } = req.body;
 
-    // Call the organizer service to register the organizer
-    const result = await organizerService.registerOrganizer({
-      name,
+    logger.info(`Admin login attempt: ${email}`);
+
+    // Call the organizer service to login the admin
+    const result = await organizerService.loginOrganizer({
       email,
       password,
-      phone,
     });
 
+    logger.info(`Admin login successful: ${email}`);
+
     // Return success response
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: 'Organizer registered successfully',
+      message: 'Admin logged in successfully',
       data: result,
     });
 
   } catch (error: any) {
-    logger.error('Organizer registration controller error:', {
+    logger.error('Admin login controller error:', {
       error: error.message,
       stack: error.stack,
       email: req.body?.email,
@@ -43,39 +45,129 @@ export const registerOrganizer = async (
 };
 
 /**
- * Login organizer
- * POST /api/v1/organizer/login
+ * Get admin profile
+ * GET /api/v1/admin/profile
  */
-export const loginOrganizer = async (
-  req: Request<{}, {}, LoginOrganizerInput>,
+export const getAdminProfile = async (
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const adminId = req.user?.userId;
 
-    logger.info(`Organizer login attempt: ${email}`);
+    if (!adminId) {
+      return next(new Error('Admin ID not found in token'));
+    }
 
-    // Call the organizer service to login the organizer
-    const result = await organizerService.loginOrganizer({
-      email,
-      password,
-    });
+    logger.info(`Admin profile request: ${adminId}`);
 
-    logger.info(`Organizer login successful: ${email}`);
+    // Get admin profile
+    const admin = await organizerService.getOrganizerById(adminId);
+
+    if (!admin) {
+      return next(new Error('Admin not found'));
+    }
 
     // Return success response
     res.status(200).json({
       success: true,
-      message: 'Organizer logged in successfully',
-      data: result,
+      message: 'Admin profile retrieved successfully',
+      data: { admin },
     });
 
   } catch (error: any) {
-    logger.error('Organizer login controller error:', {
+    logger.error('Get admin profile controller error:', {
       error: error.message,
       stack: error.stack,
-      email: req.body?.email,
+      adminId: req.user?.userId,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Update admin profile
+ * PUT /api/v1/admin/profile
+ */
+export const updateAdminProfile = async (
+  req: Request<{}, any, UpdateAdminProfileInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const adminId = req.user?.userId;
+    const { name, phone } = req.body;
+
+    if (!adminId) {
+      return next(new Error('Admin ID not found in token'));
+    }
+
+    logger.info(`Admin profile update request: ${adminId}`);
+
+    // Update admin profile
+    const updatedAdmin = await organizerService.updateAdminProfile(adminId, {
+      name,
+      phone,
+    });
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Admin profile updated successfully',
+      data: { admin: updatedAdmin },
+    });
+
+  } catch (error: any) {
+    logger.error('Update admin profile controller error:', {
+      error: error.message,
+      stack: error.stack,
+      adminId: req.user?.userId,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Update admin password
+ * PUT /api/v1/admin/password
+ */
+export const updateAdminPassword = async (
+  req: Request<{}, any, UpdateAdminPasswordInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const adminId = req.user?.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!adminId) {
+      return next(new Error('Admin ID not found in token'));
+    }
+
+    logger.info(`Admin password update request: ${adminId}`);
+
+    // Update admin password
+    await organizerService.updateAdminPassword(adminId, {
+      currentPassword,
+      newPassword,
+    });
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Admin password updated successfully',
+    });
+
+  } catch (error: any) {
+    logger.error('Update admin password controller error:', {
+      error: error.message,
+      stack: error.stack,
+      adminId: req.user?.userId,
     });
 
     // Pass the error to the error handler middleware

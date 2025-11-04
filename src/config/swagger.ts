@@ -174,6 +174,36 @@ const swaggerDefinition: SwaggerDefinition = {
           }
         },
         required: ['accessToken', 'refreshToken', 'expiresIn']
+      },
+      Admin: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            format: 'uuid',
+            example: '123e4567-e89b-12d3-a456-426614174000'
+          },
+          name: {
+            type: 'string',
+            example: 'Admin User'
+          },
+          email: {
+            type: 'string',
+            format: 'email',
+            example: 'admin@admin.com'
+          },
+          phone: {
+            type: 'string',
+            nullable: true,
+            example: '+1234567890'
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            example: '2024-01-15T10:30:00Z'
+          }
+        },
+        required: ['id', 'name', 'email', 'createdAt']
       }
     }
   },
@@ -192,15 +222,11 @@ const swaggerDefinition: SwaggerDefinition = {
     },
     {
       name: 'Venues',
-      description: 'Venue management endpoints'
+      description: 'Venue management endpoints by Admin'
     },
     {
-      name: 'Organizers',
-      description: 'Organizer management endpoints'
-    },
-    {
-      name: 'Users',
-      description: 'User management endpoints'
+      name: 'Admin',
+      description: 'Admin authentication and profile management endpoints'
     }
   ]
 };

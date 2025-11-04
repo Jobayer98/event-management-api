@@ -3,16 +3,14 @@ import { hashPassword, generateToken, comparePassword } from '../../../utils/aut
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
-export interface RegisterOrganizerData {
-  name: string;
-  email: string;
-  password: string;
+export interface UpdateAdminProfileData {
+  name?: string;
   phone?: string;
 }
 
-export interface RegisterOrganizerResponse {
-  organizer: OrganizerResponse;
-  token: string;
+export interface UpdateAdminPasswordData {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface LoginOrganizerData {
@@ -26,68 +24,6 @@ export interface LoginOrganizerResponse {
 }
 
 export class OrganizerService {
-  /**
-   * Register a new organizer
-   */
-  async registerOrganizer(organizerData: RegisterOrganizerData): Promise<RegisterOrganizerResponse> {
-    const { name, email, password, phone } = organizerData;
-
-    logger.info(`Organizer registration attempt for email: ${email}`);
-
-    // Check if organizer already exists
-    const emailExists = await organizerRepository.emailExists(email);
-    if (emailExists) {
-      logger.warn(`Organizer registration failed - email already exists: ${email}`);
-      throw createError('Email already registered', 409);
-    }
-
-    // Hash the password
-    const passwordHash = await hashPassword(password);
-
-    // Prepare organizer data
-    const createOrganizerData: CreateOrganizerData = {
-      name,
-      email,
-      passwordHash,
-      phone: phone || null,
-    };
-
-    try {
-      // Create the organizer
-      const organizer = await organizerRepository.create(createOrganizerData);
-
-      // Generate JWT token with organizer role
-      const token = generateToken({
-        userId: organizer.id,
-        email: organizer.email,
-        role: 'organizer',
-      });
-
-      logger.info(`Organizer registered successfully: ${organizer.id} - ${email}`);
-
-      return {
-        organizer,
-        token,
-      };
-    } catch (error: any) {
-      logger.error('Organizer creation error:', {
-        error: error.message,
-        email,
-      });
-
-      // Handle Prisma unique constraint errors
-      if (error.code === 'P2002') {
-        throw createError('Email already registered', 409);
-      }
-
-      // Handle other database errors
-      if (error.code?.startsWith('P')) {
-        throw createError('Database error occurred', 500);
-      }
-
-      throw createError('Registration failed', 500);
-    }
-  }
 
   /**
    * Login organizer with email and password
@@ -188,38 +124,105 @@ export class OrganizerService {
   }
 
   /**
-   * Create default admin organizer if none exists
+   * Update admin profile information
    */
-  async createDefaultAdmin(): Promise<void> {
+  async updateAdminProfile(adminId: string, updateData: UpdateAdminProfileData): Promise<OrganizerResponse> {
     try {
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@admin.com';
-      const adminPassword = process.env.ADMIN_PASSWORD || 'Admin123!@#';
-      const adminName = process.env.ADMIN_NAME || 'System Administrator';
+      logger.info(`Admin profile update attempt for ID: ${adminId}`);
 
-      logger.info(`Checking for existing admin with email: ${adminEmail}`);
-
-      // Check if admin already exists
-      const existingAdmin = await organizerRepository.findByEmail(adminEmail);
-      
-      if (existingAdmin) {
-        logger.info(`Default admin organizer already exists: ${adminEmail} (ID: ${existingAdmin.id})`);
-        return;
+      // Check if admin exists
+      const existingAdmin = await organizerRepository.findById(adminId);
+      if (!existingAdmin) {
+        logger.warn(`Admin profile update failed - admin not found: ${adminId}`);
+        throw createError('Admin not found', 404);
       }
 
-      logger.info(`Creating default admin organizer: ${adminEmail}`);
+      // Prepare update data (only include fields that are provided)
+      const updateFields: Partial<CreateOrganizerData> = {};
+      if (updateData.name !== undefined) {
+        updateFields.name = updateData.name;
+      }
+      if (updateData.phone !== undefined) {
+        updateFields.phone = updateData.phone || null;
+      }
 
-      // Create default admin
-      const result = await this.registerOrganizer({
-        name: adminName,
-        email: adminEmail,
-        password: adminPassword,
+      // Update admin profile
+      const updatedAdmin = await organizerRepository.updateById(adminId, updateFields);
+
+      logger.info(`Admin profile updated successfully: ${adminId}`);
+
+      return updatedAdmin;
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Admin profile update error:', {
+        error: error.message,
+        adminId,
       });
 
-      logger.info(`Default admin organizer created successfully: ${adminEmail} (ID: ${result.organizer.id})`);
-    } catch (error: any) {
-      logger.error('Failed to create default admin organizer:', error);
+      throw createError('Profile update failed', 500);
     }
   }
+
+  /**
+   * Update admin password
+   */
+  async updateAdminPassword(adminId: string, passwordData: UpdateAdminPasswordData): Promise<void> {
+    try {
+      logger.info(`Admin password update attempt for ID: ${adminId}`);
+
+      // Find admin with password hash
+      const admin = await organizerRepository.findByEmailWithPassword('');
+      const adminWithPassword = await organizerRepository.findById(adminId);
+
+      if (!adminWithPassword) {
+        logger.warn(`Admin password update failed - admin not found: ${adminId}`);
+        throw createError('Admin not found', 404);
+      }
+
+      // Get admin with password for verification
+      const adminForVerification = await organizerRepository.findByEmailWithPassword(adminWithPassword.email);
+      if (!adminForVerification) {
+        throw createError('Admin not found', 404);
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await comparePassword(
+        passwordData.currentPassword,
+        adminForVerification.passwordHash
+      );
+
+      if (!isCurrentPasswordValid) {
+        logger.warn(`Admin password update failed - invalid current password: ${adminId}`);
+        throw createError('Current password is incorrect', 401);
+      }
+
+      // Hash new password
+      const newPasswordHash = await hashPassword(passwordData.newPassword);
+
+      // Update password
+      await organizerRepository.updatePassword(adminId, newPasswordHash);
+
+      logger.info(`Admin password updated successfully: ${adminId}`);
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Admin password update error:', {
+        error: error.message,
+        adminId,
+      });
+
+      throw createError('Password update failed', 500);
+    }
+  }
+
+
 }
 
 // Export singleton instance

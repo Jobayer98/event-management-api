@@ -1,6 +1,5 @@
 import app from './app';
 import { logger, DatabaseConnection } from './config';
-import StartupService from './services/startupService';
 
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -13,13 +12,11 @@ async function startServer(): Promise<void> {
         await DatabaseConnection.connect();
         logger.info('Database connection established');
 
-        // Initialize application (create admin, etc.)
-        await StartupService.initialize();
-
         // Start Express server
         const server = app.listen(PORT, 'localhost', () => {
             logger.info(`Server running on port ${PORT}`);
             logger.info(`Health check: http://localhost:${PORT}/api/health`);
+            logger.info(`Swagger docs: http://localhost:${PORT}/api-docs`);
             logger.info('Server is ready to accept connections');
         });
 

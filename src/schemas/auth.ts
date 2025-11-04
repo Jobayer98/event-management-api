@@ -132,3 +132,41 @@ export const loginOrganizerSchema = z.object({
 });
 
 export type LoginOrganizerInput = z.infer<typeof loginOrganizerSchema>;
+
+// Admin profile update schema
+export const updateAdminProfileSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must not exceed 100 characters')
+    .trim()
+    .optional(),
+
+  phone: z
+    .string()
+    .max(20, 'Phone number must not exceed 20 characters')
+    .regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number format')
+    .optional()
+    .or(z.literal(''))
+});
+
+export type UpdateAdminProfileInput = z.infer<typeof updateAdminProfileSchema>;
+
+// Admin password update schema
+export const updateAdminPasswordSchema = z.object({
+  currentPassword: z
+    .string()
+    .min(1, 'Current password is required')
+    .max(255, 'Password must not exceed 255 characters'),
+
+  newPassword: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(255, 'Password must not exceed 255 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    )
+});
+
+export type UpdateAdminPasswordInput = z.infer<typeof updateAdminPasswordSchema>;
