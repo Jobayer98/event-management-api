@@ -421,4 +421,46 @@
  *         - limit
  *         - total
  *         - pages
+ *
+ *     # Organizer Schema
+ *     Organizer:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         name:
+ *           type: string
+ *           example: "Jane Smith"
+ *           description: "Organizer's full name"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "jane.smith@eventcompany.com"
+ *           description: "Organizer's email address"
+ *         phone:
+ *           type: string
+ *           nullable: true
+ *           example: "+1234567890"
+ *           description: "Organizer's phone number"
+ *         role:
+ *           type: string
+ *           example: "organizer"
+ *           description: "User role with elevated privileges"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-01-15T10:30:00Z"
+ *       required:
+ *         - id
+ *         - name
+ *         - email
+ *         - role
+ *         - createdAt
+ *         - updatedAt
  */
