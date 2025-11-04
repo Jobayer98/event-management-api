@@ -82,36 +82,3 @@ export const loginOrganizer = async (
     next(error);
   }
 };
-
-/**
- * Debug endpoint to check admin status
- * GET /api/v1/organizer/debug/admin
- */
-export const debugAdminStatus = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@eventmanagement.com';
-    const admin = await organizerService.getOrganizerByEmail(adminEmail);
-
-    res.status(200).json({
-      success: true,
-      data: {
-        adminExists: !!admin,
-        adminEmail,
-        admin: admin ? {
-          id: admin.id,
-          name: admin.name,
-          email: admin.email,
-          createdAt: admin.createdAt,
-        } : null,
-      },
-    });
-
-  } catch (error: any) {
-    logger.error('Debug admin status error:', error);
-    next(error);
-  }
-};
