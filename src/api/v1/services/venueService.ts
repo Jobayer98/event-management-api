@@ -1,4 +1,4 @@
-import { venueRepository, CreateVenueData, UpdateVenueData, VenueResponse, VenueFilters } from '../repositories/venueRepository';
+import { venueRepository, CreateVenueData, UpdateVenueData, VenueResponse, VenueListResponse, VenueFilters } from '../repositories/venueRepository';
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
@@ -18,8 +18,8 @@ export interface UpdateVenueInput {
   description?: string;
 }
 
-export interface VenueListResponse {
-  venues: VenueResponse[];
+export interface VenueListResult {
+  venues: VenueListResponse[];
   pagination: {
     page: number;
     limit: number;
@@ -29,6 +29,8 @@ export interface VenueListResponse {
     hasPrev: boolean;
   };
 }
+
+
 
 export class VenueService {
   /**
@@ -50,8 +52,11 @@ export class VenueService {
       // Prepare venue data
       const createData: CreateVenueData = {
         name,
-        address: address || null,
-        capacity: capacity || null,
+        address: address || 'Address not provided',
+        city: 'Dhaka', // Default city
+        state: 'Dhaka Division', // Default state
+        capacity: capacity || 100,
+        venueType: 'indoor', // Default venue type
         pricePerHour,
         description: description || null,
       };
@@ -128,8 +133,8 @@ export class VenueService {
       // Prepare update data
       const updateVenueData: UpdateVenueData = {
         ...(updateData.name && { name: updateData.name }),
-        ...(updateData.address !== undefined && { address: updateData.address || null }),
-        ...(updateData.capacity !== undefined && { capacity: updateData.capacity || null }),
+        ...(updateData.address !== undefined && { address: updateData.address }),
+        ...(updateData.capacity !== undefined && { capacity: updateData.capacity }),
         ...(updateData.pricePerHour !== undefined && { pricePerHour: updateData.pricePerHour }),
         ...(updateData.description !== undefined && { description: updateData.description || null }),
       };
@@ -226,7 +231,7 @@ export class VenueService {
     page: number = 1,
     limit: number = 10,
     filters: VenueFilters = {}
-  ): Promise<VenueListResponse> {
+  ): Promise<VenueListResult> {
     logger.info(`Fetching venues - page: ${page}, limit: ${limit}`, { filters });
 
     try {

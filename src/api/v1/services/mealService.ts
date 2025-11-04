@@ -1,4 +1,4 @@
-import { mealRepository, CreateMealData, UpdateMealData, MealResponse, MealFilters } from '../repositories/mealRepository';
+import { mealRepository, CreateMealData, UpdateMealData, MealResponse, MealListResponse, MealFilters } from '../repositories/mealRepository';
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
@@ -16,8 +16,8 @@ export interface UpdateMealInput {
   description?: string;
 }
 
-export interface MealListResponse {
-  meals: MealResponse[];
+export interface MealListResult {
+  meals: MealListResponse[];
   pagination: {
     page: number;
     limit: number;
@@ -27,6 +27,8 @@ export interface MealListResponse {
     hasPrev: boolean;
   };
 }
+
+
 
 export class MealService {
   /**
@@ -41,7 +43,8 @@ export class MealService {
       // Prepare meal data
       const createData: CreateMealData = {
         name,
-        type: type || null,
+        type: type || 'veg',
+        servingStyle: 'plated', // Default serving style
         pricePerPerson,
         description: description || null,
       };
@@ -99,7 +102,7 @@ export class MealService {
       // Prepare update data
       const updateMealData: UpdateMealData = {
         ...(updateData.name && { name: updateData.name }),
-        ...(updateData.type !== undefined && { type: updateData.type || null }),
+        ...(updateData.type !== undefined && { type: updateData.type }),
         ...(updateData.pricePerPerson !== undefined && { pricePerPerson: updateData.pricePerPerson }),
         ...(updateData.description !== undefined && { description: updateData.description || null }),
       };
@@ -191,7 +194,7 @@ export class MealService {
     page: number = 1,
     limit: number = 10,
     filters: MealFilters = {}
-  ): Promise<MealListResponse> {
+  ): Promise<MealListResult> {
     logger.info(`Fetching meals - page: ${page}, limit: ${limit}`, { filters });
 
     try {
