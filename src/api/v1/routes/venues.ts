@@ -19,7 +19,7 @@ const router = Router();
  *     tags:
  *       - Venues
  *     summary: Get venues
- *     description: Retrieve a paginated list of available venues with optional filters
+ *     description: Retrieve a paginated list of available venues with comprehensive filtering options
  *     parameters:
  *       - in: query
  *         name: page
@@ -41,7 +41,19 @@ const router = Router();
  *         schema:
  *           type: string
  *           maxLength: 100
- *         description: Search venues by name or address
+ *         description: Search venues by name, address, or description
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *           maxLength: 100
+ *         description: Filter by city
+ *       - in: query
+ *         name: venueType
+ *         schema:
+ *           type: string
+ *           enum: [indoor, outdoor, hybrid]
+ *         description: Filter by venue type
  *       - in: query
  *         name: minCapacity
  *         schema:
@@ -66,6 +78,35 @@ const router = Router();
  *           type: number
  *           minimum: 0
  *         description: Maximum price per hour filter
+ *       - in: query
+ *         name: facilities
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of required facilities (e.g., "parking,ac,wifi")
+ *       - in: query
+ *         name: amenities
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of required amenities (e.g., "bridal_room,dance_floor")
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *         description: Filter by active status
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [name, capacity, pricePerHour, rating, createdAt]
+ *           default: createdAt
+ *         description: Sort venues by field
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
  *     responses:
  *       200:
  *         description: Venues retrieved successfully
@@ -140,7 +181,7 @@ router.get('/', getVenues);
  *     tags:
  *       - Venues
  *     summary: Create new venue
- *     description: Create a new venue (organizer access required)
+ *     description: Create a new venue with comprehensive details (admin access required)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -151,7 +192,13 @@ router.get('/', getVenues);
  *             type: object
  *             required:
  *               - name
+ *               - address
+ *               - city
+ *               - state
+ *               - capacity
+ *               - venueType
  *               - pricePerHour
+ *               - servingStyle
  *             properties:
  *               name:
  *                 type: string
@@ -159,29 +206,157 @@ router.get('/', getVenues);
  *                 maxLength: 150
  *                 example: "Grand Ballroom"
  *                 description: "Name of the venue"
+ *               description:
+ *                 type: string
+ *                 maxLength: 2000
+ *                 example: "Elegant ballroom perfect for weddings and corporate events"
+ *                 description: "Detailed description of the venue"
  *               address:
  *                 type: string
  *                 minLength: 5
  *                 maxLength: 500
- *                 example: "123 Main Street, Downtown City, State 12345"
+ *                 example: "123 Main Street, Downtown City"
  *                 description: "Physical address of the venue"
+ *               city:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *                 example: "Dhaka"
+ *                 description: "City where the venue is located"
+ *               state:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *                 example: "Dhaka Division"
+ *                 description: "State or division"
+ *               zipCode:
+ *                 type: string
+ *                 maxLength: 20
+ *                 example: "1000"
+ *                 description: "Postal/ZIP code"
+ *               country:
+ *                 type: string
+ *                 maxLength: 100
+ *                 example: "Bangladesh"
+ *                 description: "Country (defaults to Bangladesh)"
+ *               latitude:
+ *                 type: number
+ *                 minimum: -90
+ *                 maximum: 90
+ *                 example: 23.8103
+ *                 description: "GPS latitude coordinate"
+ *               longitude:
+ *                 type: number
+ *                 minimum: -180
+ *                 maximum: 180
+ *                 example: 90.4125
+ *                 description: "GPS longitude coordinate"
  *               capacity:
  *                 type: integer
  *                 minimum: 1
  *                 maximum: 10000
- *                 example: 200
+ *                 example: 500
  *                 description: "Maximum number of people the venue can accommodate"
+ *               area:
+ *                 type: number
+ *                 minimum: 0
+ *                 example: 5000.00
+ *                 description: "Area in square feet"
+ *               venueType:
+ *                 type: string
+ *                 enum: [indoor, outdoor, hybrid]
+ *                 example: "indoor"
+ *                 description: "Type of venue"
  *               pricePerHour:
  *                 type: number
  *                 minimum: 0
  *                 maximum: 999999.99
- *                 example: 150.00
- *                 description: "Hourly rental rate for the venue"
- *               description:
+ *                 example: 250.00
+ *                 description: "Hourly rental rate"
+ *               minimumHours:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 24
+ *                 example: 4
+ *                 description: "Minimum booking hours"
+ *               securityDeposit:
+ *                 type: number
+ *                 minimum: 0
+ *                 example: 5000.00
+ *                 description: "Security deposit amount"
+ *               facilities:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [parking, ac, wifi, sound_system, lighting, stage, kitchen, restrooms, wheelchair_accessible, projector, elevator, garden]
+ *                 example: ["parking", "ac", "wifi", "sound_system"]
+ *                 description: "Available facilities"
+ *               amenities:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [bridal_room, groom_room, vip_lounge, dance_floor, bar_area, outdoor_space, gazebo, fountain]
+ *                 example: ["bridal_room", "dance_floor"]
+ *                 description: "Available amenities"
+ *               cateringAllowed:
+ *                 type: boolean
+ *                 example: true
+ *                 description: "Whether catering is allowed"
+ *               decorationAllowed:
+ *                 type: boolean
+ *                 example: true
+ *                 description: "Whether decoration is allowed"
+ *               alcoholAllowed:
+ *                 type: boolean
+ *                 example: false
+ *                 description: "Whether alcohol is allowed"
+ *               smokingAllowed:
+ *                 type: boolean
+ *                 example: false
+ *                 description: "Whether smoking is allowed"
+ *               petFriendly:
+ *                 type: boolean
+ *                 example: false
+ *                 description: "Whether pets are allowed"
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uri
+ *                 example: ["https://example.com/venue1.jpg", "https://example.com/venue2.jpg"]
+ *                 description: "Array of image URLs"
+ *               virtualTourUrl:
  *                 type: string
- *                 maxLength: 1000
- *                 example: "Elegant ballroom with crystal chandeliers, perfect for weddings and formal events"
- *                 description: "Detailed description of the venue and its amenities"
+ *                 format: uri
+ *                 example: "https://example.com/virtual-tour"
+ *                 description: "Virtual tour URL"
+ *               contactPerson:
+ *                 type: string
+ *                 maxLength: 100
+ *                 example: "Ahmed Hassan"
+ *                 description: "Contact person name"
+ *               contactPhone:
+ *                 type: string
+ *                 maxLength: 20
+ *                 example: "+8801712345678"
+ *                 description: "Contact phone number"
+ *               contactEmail:
+ *                 type: string
+ *                 format: email
+ *                 maxLength: 150
+ *                 example: "contact@venue.com"
+ *                 description: "Contact email address"
+ *               operatingHours:
+ *                 type: object
+ *                 example: {
+ *                   "monday": {"open": "09:00", "close": "23:00"},
+ *                   "tuesday": {"open": "09:00", "close": "23:00"}
+ *                 }
+ *                 description: "Operating hours for each day"
+ *               isActive:
+ *                 type: boolean
+ *                 example: true
+ *                 description: "Whether the venue is active"
  *     responses:
  *       201:
  *         description: Venue created successfully

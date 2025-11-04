@@ -19,7 +19,7 @@ const router = Router();
  *     tags:
  *       - Meals
  *     summary: Get meals
- *     description: Retrieve a paginated list of available meals with optional filters
+ *     description: Retrieve a paginated list of available meals with comprehensive filtering options
  *     parameters:
  *       - in: query
  *         name: page
@@ -40,8 +40,20 @@ const router = Router();
  *         name: type
  *         schema:
  *           type: string
- *           enum: [veg, nonveg, buffet]
+ *           enum: [veg, nonveg, buffet, plated]
  *         description: Filter meals by type
+ *       - in: query
+ *         name: cuisine
+ *         schema:
+ *           type: string
+ *           maxLength: 50
+ *         description: Filter by cuisine type
+ *       - in: query
+ *         name: servingStyle
+ *         schema:
+ *           type: string
+ *           enum: [buffet, plated, family_style]
+ *         description: Filter by serving style
  *       - in: query
  *         name: search
  *         schema:
@@ -60,6 +72,47 @@ const router = Router();
  *           type: number
  *           minimum: 0
  *         description: Maximum price per person filter
+ *       - in: query
+ *         name: minGuests
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Minimum guest requirement filter
+ *       - in: query
+ *         name: maxGuests
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Maximum guest requirement filter
+ *       - in: query
+ *         name: specialDietary
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of dietary requirements (e.g., "halal,gluten_free")
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *         description: Filter by active status
+ *       - in: query
+ *         name: isPopular
+ *         schema:
+ *           type: boolean
+ *         description: Filter by popular status
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [name, pricePerPerson, rating, createdAt, minimumGuests]
+ *           default: createdAt
+ *         description: Sort meals by field
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
  *     responses:
  *       200:
  *         description: Meals retrieved successfully
@@ -132,7 +185,7 @@ router.get('/', getMeals);
  *     tags:
  *       - Meals
  *     summary: Create new meal
- *     description: Create a new meal option (organizer access required)
+ *     description: Create a new meal option with comprehensive details (admin access required)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -143,30 +196,112 @@ router.get('/', getMeals);
  *             type: object
  *             required:
  *               - name
+ *               - type
+ *               - servingStyle
  *               - pricePerPerson
  *             properties:
  *               name:
  *                 type: string
  *                 minLength: 2
  *                 maxLength: 100
- *                 example: "Deluxe Wedding Buffet"
+ *                 example: "Vegetarian Deluxe"
  *                 description: "Name of the meal"
+ *               description:
+ *                 type: string
+ *                 maxLength: 2000
+ *                 example: "Premium vegetarian menu featuring seasonal vegetables"
+ *                 description: "Detailed description of the meal"
  *               type:
  *                 type: string
- *                 enum: [veg, nonveg, buffet]
- *                 example: "buffet"
- *                 description: "Type of meal service"
+ *                 enum: [veg, nonveg, buffet, plated]
+ *                 example: "veg"
+ *                 description: "Type of meal"
+ *               cuisine:
+ *                 type: string
+ *                 maxLength: 50
+ *                 example: "continental"
+ *                 description: "Cuisine type"
+ *               servingStyle:
+ *                 type: string
+ *                 enum: [buffet, plated, family_style]
+ *                 example: "plated"
+ *                 description: "How the meal is served"
  *               pricePerPerson:
  *                 type: number
  *                 minimum: 0
  *                 maximum: 9999.99
- *                 example: 45.99
- *                 description: "Cost per person for the meal"
- *               description:
- *                 type: string
- *                 maxLength: 1000
- *                 example: "International cuisine buffet with live cooking stations, dessert bar, and premium beverages"
- *                 description: "Detailed description of the meal"
+ *                 example: 325.00
+ *                 description: "Cost per person"
+ *               minimumGuests:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 10000
+ *                 example: 50
+ *                 description: "Minimum number of guests required"
+ *               menuItems:
+ *                 type: object
+ *                 example: {
+ *                   "appetizers": ["Vegetable Spring Rolls", "Hummus with Pita"],
+ *                   "main_course": ["Quinoa Stuffed Bell Peppers", "Pasta Primavera"],
+ *                   "desserts": ["Chocolate Mousse", "Fresh Fruit Tart"]
+ *                 }
+ *                 description: "Menu items organized by category"
+ *               beverages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [tea, coffee, soft_drinks, juices, water, mocktails, herbal_tea, fresh_juices, coconut_water, kombucha]
+ *                 example: ["tea", "coffee", "juices"]
+ *                 description: "Available beverages"
+ *               specialDietary:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [halal, kosher, gluten_free, dairy_free, nut_free, vegan]
+ *                 example: ["halal", "gluten_free"]
+ *                 description: "Special dietary accommodations"
+ *               serviceHours:
+ *                 type: object
+ *                 properties:
+ *                   setup:
+ *                     type: number
+ *                     minimum: 0
+ *                     maximum: 24
+ *                     example: 1
+ *                   service:
+ *                     type: number
+ *                     minimum: 0
+ *                     maximum: 24
+ *                     example: 3
+ *                   cleanup:
+ *                     type: number
+ *                     minimum: 0
+ *                     maximum: 24
+ *                     example: 1
+ *                 description: "Service time breakdown in hours"
+ *               staffIncluded:
+ *                 type: boolean
+ *                 example: true
+ *                 description: "Whether service staff is included"
+ *               equipmentIncluded:
+ *                 type: boolean
+ *                 example: true
+ *                 description: "Whether serving equipment is included"
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uri
+ *                 example: ["https://example.com/meal1.jpg", "https://example.com/meal2.jpg"]
+ *                 description: "Array of food image URLs"
+ *               isActive:
+ *                 type: boolean
+ *                 example: true
+ *                 description: "Whether the meal is active"
+ *               isPopular:
+ *                 type: boolean
+ *                 example: false
+ *                 description: "Whether the meal is marked as popular"
  *     responses:
  *       201:
  *         description: Meal created successfully
