@@ -24,7 +24,9 @@ export const createVenue = async (
     res.status(201).json({
       success: true,
       message: 'Venue created successfully',
-      data: venue,
+      data: {
+        venue: venue,
+      },
     });
 
   } catch (error: any) {
@@ -59,7 +61,10 @@ export const getVenueById = async (
     // Return success response
     res.status(200).json({
       success: true,
-      data: venue,
+      message: 'Venue retrieved successfully',
+      data: {
+        venue: venue,
+      },
     });
 
   } catch (error: any) {
@@ -96,7 +101,9 @@ export const updateVenue = async (
     res.status(200).json({
       success: true,
       message: 'Venue updated successfully',
-      data: venue,
+      data: {
+        venue: venue,
+      },
     });
 
   } catch (error: any) {
@@ -191,8 +198,11 @@ export const getVenues = async (
     // Return success response
     res.status(200).json({
       success: true,
-      data: result.venues,
-      pagination: result.pagination,
+      message: 'Venues retrieved successfully',
+      data: {
+        venues: result.venues,
+        pagination: result.pagination,
+      },
     });
 
   } catch (error: any) {

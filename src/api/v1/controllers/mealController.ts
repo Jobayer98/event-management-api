@@ -24,7 +24,9 @@ export const createMeal = async (
     res.status(201).json({
       success: true,
       message: 'Meal created successfully',
-      data: meal,
+      data: {
+        meal: meal,
+      },
     });
 
   } catch (error: any) {
@@ -59,7 +61,10 @@ export const getMealById = async (
     // Return success response
     res.status(200).json({
       success: true,
-      data: meal,
+      message: 'Meal retrieved successfully',
+      data: {
+        meal: meal,
+      },
     });
 
   } catch (error: any) {
@@ -96,7 +101,9 @@ export const updateMeal = async (
     res.status(200).json({
       success: true,
       message: 'Meal updated successfully',
-      data: meal,
+      data: {
+        meal: meal,
+      },
     });
 
   } catch (error: any) {
@@ -188,8 +195,11 @@ export const getMeals = async (
     // Return success response
     res.status(200).json({
       success: true,
-      data: result.meals,
-      pagination: result.pagination,
+      message: 'Meals retrieved successfully',
+      data: {
+        meals: result.meals,
+        pagination: result.pagination,
+      },
     });
 
   } catch (error: any) {
