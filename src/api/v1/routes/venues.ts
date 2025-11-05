@@ -97,7 +97,7 @@ const router = Router();
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [name, capacity, pricePerHour, rating, createdAt]
+ *           enum: [name, capacity, pricePerDay, rating, createdAt]
  *           default: createdAt
  *         description: Sort venues by field
  *       - in: query
@@ -142,7 +142,7 @@ const router = Router();
  *                         name: "Grand Ballroom"
  *                         address: "123 Main St, Downtown"
  *                         capacity: 200
- *                         pricePerHour: 150.00
+ *                         pricePerDay: 5500.00
  *                         description: "Elegant ballroom perfect for weddings"
  *                         createdAt: "2024-01-15T10:30:00Z"
  *                         updatedAt: "2024-01-15T10:30:00Z"
@@ -150,7 +150,7 @@ const router = Router();
  *                         name: "Conference Center"
  *                         address: "456 Business Ave, Uptown"
  *                         capacity: 100
- *                         pricePerHour: 75.00
+ *                         pricePerDay: 7500.00
  *                         description: "Modern conference facility"
  *                         createdAt: "2024-01-15T10:30:00Z"
  *                         updatedAt: "2024-01-15T10:30:00Z"
@@ -197,7 +197,7 @@ router.get('/', getVenues);
  *               - state
  *               - capacity
  *               - venueType
- *               - pricePerHour
+ *               - pricePerDay
  *               - servingStyle
  *             properties:
  *               name:
@@ -267,18 +267,18 @@ router.get('/', getVenues);
  *                 enum: [indoor, outdoor, hybrid]
  *                 example: "indoor"
  *                 description: "Type of venue"
- *               pricePerHour:
+ *               pricePerDay:
  *                 type: number
  *                 minimum: 0
  *                 maximum: 999999.99
- *                 example: 250.00
- *                 description: "Hourly rental rate"
- *               minimumHours:
+ *                 example: 25000.00
+ *                 description: "Daily rental rate"
+ *               minimumDays:
  *                 type: integer
  *                 minimum: 1
- *                 maximum: 24
- *                 example: 4
- *                 description: "Minimum booking hours"
+ *                 maximum: 365
+ *                 example: 1
+ *                 description: "Minimum booking days"
  *               securityDeposit:
  *                 type: number
  *                 minimum: 0
@@ -388,7 +388,7 @@ router.get('/', getVenues);
  *                       name: "Grand Ballroom"
  *                       address: "123 Main Street, Downtown City"
  *                       capacity: 200
- *                       pricePerHour: 150.00
+ *                       pricePerDay: 15000.00
  *                       description: "Elegant ballroom with crystal chandeliers"
  *                       createdAt: "2024-01-15T10:30:00Z"
  *                       updatedAt: "2024-01-15T10:30:00Z"
@@ -407,7 +407,7 @@ router.get('/', getVenues);
  *                   errors:
  *                     - field: "name"
  *                       message: "Venue name must be at least 2 characters"
- *                     - field: "pricePerHour"
+ *                     - field: "pricePerDay"
  *                       message: "Price per hour cannot be negative"
  *       401:
  *         description: Unauthorized
@@ -498,7 +498,7 @@ router.post('/', validateBody(createVenueSchema), authenticateToken, requireRole
  *                       name: "Grand Ballroom"
  *                       address: "123 Main Street, Downtown City, State 12345"
  *                       capacity: 200
- *                       pricePerHour: 150.00
+ *                       pricePerDay: 15000.00
  *                       description: "Elegant ballroom with crystal chandeliers, perfect for weddings and formal events. Features include dance floor, stage, and full catering kitchen."
  *                       createdAt: "2024-01-15T10:30:00Z"
  *                       updatedAt: "2024-01-15T10:30:00Z"
@@ -568,12 +568,12 @@ router.get('/:id', getVenueById);
  *                 maximum: 10000
  *                 example: 250
  *                 description: "Updated maximum capacity"
- *               pricePerHour:
+ *               pricePerDay:
  *                 type: number
  *                 minimum: 0
  *                 maximum: 999999.99
- *                 example: 175.00
- *                 description: "Updated hourly rental rate"
+ *                 example: 7500.00
+ *                 description: "Updated daily rental rate"
  *               description:
  *                 type: string
  *                 maxLength: 1000
@@ -611,7 +611,7 @@ router.get('/:id', getVenueById);
  *                       name: "Premium Grand Ballroom"
  *                       address: "456 Premium Street, Downtown City"
  *                       capacity: 250
- *                       pricePerHour: 175.00
+ *                       pricePerDay: 17500.00
  *                       description: "Premium ballroom with upgraded amenities"
  *                       createdAt: "2024-01-15T10:30:00Z"
  *                       updatedAt: "2024-01-15T11:30:00Z"

@@ -481,7 +481,7 @@ router.post('/', authenticateToken, validateBody(createEventSchema), createEvent
  *                         name: "Grand Ballroom"
  *                         location: "Downtown Convention Center"
  *                         capacity: 200
- *                         pricePerHour: 150.00
+ *                         pricePerDay: 150.00
  *                       meal:
  *                         id: "789e0123-e89b-12d3-a456-426614174002"
  *                         name: "Wedding Feast"
