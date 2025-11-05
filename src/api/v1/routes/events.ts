@@ -67,37 +67,25 @@ const router = Router();
  *                       type: boolean
  *                       example: true
  *                       description: "Whether the venue is available during the specified time"
- *                     conflictingEvents:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: string
- *                             format: uuid
- *                           startTime:
- *                             type: string
- *                             format: date-time
- *                           endTime:
- *                             type: string
- *                             format: date-time
- *                       description: "List of conflicting events if venue is not available"
+ *                     message:
+ *                       type: string
+ *                       example: "Grand Ballroom is available for your event from 12/25/2024, 10:00:00 AM to 12/25/2024, 6:00:00 PM"
+ *                       description: "Detailed availability message"
  *             examples:
  *               available:
  *                 summary: Venue is available
  *                 value:
  *                   success: true
- *                   message: "Venue availability checked successfully"
  *                   data:
  *                     available: true
- *                     conflictingEvents: []
+ *                     message: "Grand Ballroom is available for your event from 12/25/2024, 10:00:00 AM to 12/25/2024, 6:00:00 PM"
  *               unavailable:
  *                 summary: Venue is not available
  *                 value:
  *                   success: true
- *                   message: "Venue availability checked successfully"
  *                   data:
  *                     available: false
+ *                     message: "Sorry, Grand Ballroom is not available for the requested time. There are conflicting events: Wedding from 12/25/2024, 2:00:00 PM to 12/25/2024, 10:00:00 PM. Please choose a different time slot."
  *                     conflictingEvents:
  *                       - id: "456e7890-e89b-12d3-a456-426614174001"
  *                         startTime: "2024-12-25T14:00:00.000Z"
@@ -259,7 +247,7 @@ router.get('/', authenticateToken, getUserEvents);
  *     tags:
  *       - Events
  *     summary: Create new event
- *     description: Create a new event booking with optional meal selection
+ *     description: Create a new event booking with optional catering by selecting existing meal
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -302,35 +290,29 @@ router.get('/', authenticateToken, getUserEvents);
  *                 format: date-time
  *                 example: "2024-12-25T18:00:00.000Z"
  *                 description: "Event end time in ISO 8601 format"
- *               meal:
- *                 type: object
- *                 description: "Optional meal configuration for the event"
- *                 properties:
- *                   name:
- *                     type: string
- *                     minLength: 2
- *                     maxLength: 100
- *                     example: "Wedding Feast"
- *                     description: "Name of the meal"
- *                   type:
- *                     type: string
- *                     enum: [veg, nonveg, buffet]
- *                     example: "buffet"
- *                     description: "Type of meal service"
- *                   pricePerPerson:
- *                     type: number
- *                     minimum: 0
- *                     maximum: 9999.99
- *                     example: 45.99
- *                     description: "Cost per person for the meal"
- *                   description:
- *                     type: string
- *                     maxLength: 1000
- *                     example: "Traditional wedding buffet with multiple cuisines"
- *                     description: "Detailed description of the meal"
- *                 required:
- *                   - name
- *                   - pricePerPerson
+ *               mealId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: "789e0123-e89b-12d3-a456-426614174002"
+ *                 description: "Optional UUID of existing meal for catering service"
+ *           examples:
+ *             with_catering:
+ *               summary: Event booking with catering
+ *               value:
+ *                 venueId: "456e7890-e89b-12d3-a456-426614174001"
+ *                 eventType: "Wedding Reception"
+ *                 peopleCount: 150
+ *                 startTime: "2024-12-25T10:00:00.000Z"
+ *                 endTime: "2024-12-25T18:00:00.000Z"
+ *                 mealId: "789e0123-e89b-12d3-a456-426614174002"
+ *             without_catering:
+ *               summary: Event booking without catering
+ *               value:
+ *                 venueId: "456e7890-e89b-12d3-a456-426614174001"
+ *                 eventType: "Birthday Party"
+ *                 peopleCount: 80
+ *                 startTime: "2024-12-30T14:00:00.000Z"
+ *                 endTime: "2024-12-30T20:00:00.000Z"
  *     responses:
  *       201:
  *         description: Event created successfully
@@ -351,29 +333,40 @@ router.get('/', authenticateToken, getUserEvents);
  *                     event:
  *                       $ref: '#/components/schemas/Event'
  *             examples:
- *               success:
- *                 summary: Event created with meal
+ *               with_catering:
+ *                 summary: Event created with catering
  *                 value:
  *                   success: true
- *                   message: "Event created successfully"
+ *                   message: "Event booked successfully"
  *                   data:
- *                     event:
- *                       id: "123e4567-e89b-12d3-a456-426614174000"
- *                       eventType: "Wedding Reception"
- *                       peopleCount: 150
- *                       status: "pending"
- *                       startTime: "2024-12-25T10:00:00.000Z"
- *                       endTime: "2024-12-25T18:00:00.000Z"
- *                       venue:
- *                         id: "456e7890-e89b-12d3-a456-426614174001"
- *                         name: "Grand Ballroom"
- *                       meal:
- *                         id: "789e0123-e89b-12d3-a456-426614174002"
- *                         name: "Wedding Feast"
- *                         type: "buffet"
- *                         pricePerPerson: 45.99
- *                       createdAt: "2024-01-15T10:30:00Z"
- *                       updatedAt: "2024-01-15T10:30:00Z"
+ *                     id: "123e4567-e89b-12d3-a456-426614174000"
+ *                     userId: "abc12345-e89b-12d3-a456-426614174003"
+ *                     venueId: "456e7890-e89b-12d3-a456-426614174001"
+ *                     mealId: "789e0123-e89b-12d3-a456-426614174002"
+ *                     eventType: "Wedding Reception"
+ *                     peopleCount: 150
+ *                     startTime: "2024-12-25T10:00:00.000Z"
+ *                     endTime: "2024-12-25T18:00:00.000Z"
+ *                     totalCost: 8899.50
+ *                     status: "pending"
+ *                     createdAt: "2024-01-15T10:30:00Z"
+ *               without_catering:
+ *                 summary: Event created without catering
+ *                 value:
+ *                   success: true
+ *                   message: "Event booked successfully"
+ *                   data:
+ *                     id: "123e4567-e89b-12d3-a456-426614174000"
+ *                     userId: "abc12345-e89b-12d3-a456-426614174003"
+ *                     venueId: "456e7890-e89b-12d3-a456-426614174001"
+ *                     mealId: null
+ *                     eventType: "Birthday Party"
+ *                     peopleCount: 80
+ *                     startTime: "2024-12-30T14:00:00.000Z"
+ *                     endTime: "2024-12-30T20:00:00.000Z"
+ *                     totalCost: 2000.00
+ *                     status: "pending"
+ *                     createdAt: "2024-01-15T10:30:00Z"
  *       400:
  *         description: Validation error or venue unavailable
  *         content:
@@ -469,31 +462,34 @@ router.post('/', authenticateToken, validateBody(createEventSchema), createEvent
  *                   success: true
  *                   message: "Event retrieved successfully"
  *                   data:
- *                     event:
- *                       id: "123e4567-e89b-12d3-a456-426614174000"
- *                       eventType: "Wedding Reception"
- *                       peopleCount: 150
- *                       status: "confirmed"
- *                       startTime: "2024-12-25T10:00:00.000Z"
- *                       endTime: "2024-12-25T18:00:00.000Z"
- *                       venue:
- *                         id: "456e7890-e89b-12d3-a456-426614174001"
- *                         name: "Grand Ballroom"
- *                         location: "Downtown Convention Center"
- *                         capacity: 200
- *                         pricePerDay: 150.00
- *                       meal:
- *                         id: "789e0123-e89b-12d3-a456-426614174002"
- *                         name: "Wedding Feast"
- *                         type: "buffet"
- *                         pricePerPerson: 45.99
- *                         description: "Traditional wedding buffet"
- *                       user:
- *                         id: "abc12345-e89b-12d3-a456-426614174003"
- *                         name: "John Doe"
- *                         email: "john.doe@example.com"
- *                       createdAt: "2024-01-15T10:30:00Z"
- *                       updatedAt: "2024-01-15T10:30:00Z"
+ *                     id: "123e4567-e89b-12d3-a456-426614174000"
+ *                     userId: "abc12345-e89b-12d3-a456-426614174003"
+ *                     venueId: "456e7890-e89b-12d3-a456-426614174001"
+ *                     mealId: "789e0123-e89b-12d3-a456-426614174002"
+ *                     eventType: "Wedding Reception"
+ *                     peopleCount: 150
+ *                     startTime: "2024-12-25T10:00:00.000Z"
+ *                     endTime: "2024-12-25T18:00:00.000Z"
+ *                     totalCost: 8899.50
+ *                     status: "confirmed"
+ *                     createdAt: "2024-01-15T10:30:00Z"
+ *                     venue:
+ *                       id: "456e7890-e89b-12d3-a456-426614174001"
+ *                       name: "Grand Ballroom"
+ *                       address: "123 Main Street, Downtown"
+ *                       capacity: 200
+ *                       pricePerDay: 2000.00
+ *                     meal:
+ *                       id: "789e0123-e89b-12d3-a456-426614174002"
+ *                       name: "Wedding Feast"
+ *                       type: "buffet"
+ *                       pricePerPerson: 45.99
+ *                       minimumGuests: 50
+ *                       description: "Traditional wedding buffet"
+ *                     user:
+ *                       id: "abc12345-e89b-12d3-a456-426614174003"
+ *                       name: "John Doe"
+ *                       email: "john.doe@example.com"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -535,7 +531,7 @@ router.get('/:id', authenticateToken, getEventById);
  *     tags:
  *       - Events
  *     summary: Update event
- *     description: Update event details (people count and meal configuration only)
+ *     description: Update event details (people count and meal selection only)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -560,36 +556,30 @@ router.get('/:id', authenticateToken, getEventById);
  *                 maximum: 10000
  *                 example: 175
  *                 description: "Updated number of attendees"
- *               meal:
- *                 type: object
- *                 description: "Updated meal configuration"
- *                 properties:
- *                   name:
- *                     type: string
- *                     minLength: 2
- *                     maxLength: 100
- *                     example: "Premium Wedding Feast"
- *                   type:
- *                     type: string
- *                     enum: [veg, nonveg, buffet]
- *                     example: "buffet"
- *                   pricePerPerson:
- *                     type: number
- *                     minimum: 0
- *                     maximum: 9999.99
- *                     example: 55.99
- *                   description:
- *                     type: string
- *                     maxLength: 1000
- *                     example: "Premium buffet with international cuisines"
- *                 required:
- *                   - name
- *                   - pricePerPerson
+ *               mealId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: "789e0123-e89b-12d3-a456-426614174002"
+ *                 description: "Updated meal ID for catering service"
  *               removeMeal:
  *                 type: boolean
  *                 example: false
  *                 description: "Set to true to remove meal from event"
  *             minProperties: 1
+ *           examples:
+ *             change_meal:
+ *               summary: Update event with different meal
+ *               value:
+ *                 peopleCount: 175
+ *                 mealId: "999e0123-e89b-12d3-a456-426614174999"
+ *             remove_meal:
+ *               summary: Remove meal from event
+ *               value:
+ *                 removeMeal: true
+ *             people_count_only:
+ *               summary: Update only people count
+ *               value:
+ *                 peopleCount: 120
  *     responses:
  *       200:
  *         description: Event updated successfully
@@ -610,28 +600,40 @@ router.get('/:id', authenticateToken, getEventById);
  *                     event:
  *                       $ref: '#/components/schemas/Event'
  *             examples:
- *               success:
- *                 summary: Event updated with new meal
+ *               meal_updated:
+ *                 summary: Event updated with different meal
  *                 value:
  *                   success: true
  *                   message: "Event updated successfully"
  *                   data:
- *                     event:
- *                       id: "123e4567-e89b-12d3-a456-426614174000"
- *                       eventType: "Wedding Reception"
- *                       peopleCount: 175
- *                       status: "confirmed"
- *                       startTime: "2024-12-25T10:00:00.000Z"
- *                       endTime: "2024-12-25T18:00:00.000Z"
- *                       venue:
- *                         id: "456e7890-e89b-12d3-a456-426614174001"
- *                         name: "Grand Ballroom"
- *                       meal:
- *                         id: "789e0123-e89b-12d3-a456-426614174002"
- *                         name: "Premium Wedding Feast"
- *                         type: "buffet"
- *                         pricePerPerson: 55.99
- *                       updatedAt: "2024-01-15T11:30:00Z"
+ *                     id: "123e4567-e89b-12d3-a456-426614174000"
+ *                     userId: "abc12345-e89b-12d3-a456-426614174003"
+ *                     venueId: "456e7890-e89b-12d3-a456-426614174001"
+ *                     mealId: "999e0123-e89b-12d3-a456-426614174999"
+ *                     eventType: "Wedding Reception"
+ *                     peopleCount: 175
+ *                     startTime: "2024-12-25T10:00:00.000Z"
+ *                     endTime: "2024-12-25T18:00:00.000Z"
+ *                     totalCost: 11799.25
+ *                     status: "pending"
+ *                     createdAt: "2024-01-15T10:30:00Z"
+ *               meal_removed:
+ *                 summary: Event updated with meal removed
+ *                 value:
+ *                   success: true
+ *                   message: "Event updated successfully"
+ *                   data:
+ *                     id: "123e4567-e89b-12d3-a456-426614174000"
+ *                     userId: "abc12345-e89b-12d3-a456-426614174003"
+ *                     venueId: "456e7890-e89b-12d3-a456-426614174001"
+ *                     mealId: null
+ *                     eventType: "Wedding Reception"
+ *                     peopleCount: 150
+ *                     startTime: "2024-12-25T10:00:00.000Z"
+ *                     endTime: "2024-12-25T18:00:00.000Z"
+ *                     totalCost: 2000.00
+ *                     status: "pending"
+ *                     createdAt: "2024-01-15T10:30:00Z"
  *       400:
  *         description: Validation error
  *         content:
