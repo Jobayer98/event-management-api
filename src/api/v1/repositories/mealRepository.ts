@@ -65,6 +65,11 @@ export interface MealResponse {
 export interface MealListResponse {
   id: string;
   name: string;
+}
+
+export interface MealDetailResponse {
+  id: string;
+  name: string;
   description: string | null;
   type: string;
   cuisine: string | null;
@@ -187,29 +192,13 @@ export class MealRepository {
       select: {
         id: true,
         name: true,
-        description: true,
-        type: true,
-        cuisine: true,
-        servingStyle: true,
-        pricePerPerson: true,
-        minimumGuests: true,
-        specialDietary: true,
-        rating: true,
-        totalReviews: true,
-        images: true,
-        isPopular: true,
-        createdAt: true,
       },
       orderBy: {
         name: 'asc',
       },
     });
 
-    return meals.map(meal => ({
-      ...meal,
-      pricePerPerson: Number(meal.pricePerPerson),
-      rating: meal.rating ? Number(meal.rating) : null,
-    }));
+    return meals;
   }
 
   /**

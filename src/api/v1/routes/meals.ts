@@ -19,7 +19,7 @@ const router = Router();
  *     tags:
  *       - Meals
  *     summary: Get meals
- *     description: Retrieve a paginated list of available meals with comprehensive filtering options
+ *     description: Retrieve a paginated list of available meals (id and name only) for selection purposes
  *     parameters:
  *       - in: query
  *         name: page
@@ -133,7 +133,13 @@ const router = Router();
  *                     meals:
  *                       type: array
  *                       items:
- *                         $ref: '#/components/schemas/Meal'
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                           name:
+ *                             type: string
  *                     pagination:
  *                       $ref: '#/components/schemas/Pagination'
  *             examples:
@@ -146,18 +152,12 @@ const router = Router();
  *                     meals:
  *                       - id: "123e4567-e89b-12d3-a456-426614174000"
  *                         name: "Deluxe Buffet"
- *                         type: "buffet"
- *                         pricePerPerson: 45.99
- *                         description: "International cuisine buffet with multiple stations"
- *                         createdAt: "2024-01-15T10:30:00Z"
- *                         updatedAt: "2024-01-15T10:30:00Z"
  *                       - id: "456e7890-e89b-12d3-a456-426614174001"
  *                         name: "Vegetarian Feast"
- *                         type: "veg"
- *                         pricePerPerson: 35.99
- *                         description: "Fresh vegetarian dishes with organic ingredients"
- *                         createdAt: "2024-01-15T10:30:00Z"
- *                         updatedAt: "2024-01-15T10:30:00Z"
+ *                       - id: "789e0123-e89b-12d3-a456-426614174002"
+ *                         name: "Seafood Special"
+ *                       - id: "999e0123-e89b-12d3-a456-426614174999"
+ *                         name: "Premium Wedding Feast"
  *                     pagination:
  *                       page: 1
  *                       limit: 10
