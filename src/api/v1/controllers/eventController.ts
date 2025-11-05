@@ -21,7 +21,7 @@ export const checkAvailability = async (
     const result = await eventService.checkAvailability(availabilityData);
 
     // Return response with appropriate status
-    const statusCode = result.available ? 200 : 409;
+    const statusCode = result.available ? 200 : 200; // Always return 200 for availability checks
     
     res.status(statusCode).json({
       success: true,
