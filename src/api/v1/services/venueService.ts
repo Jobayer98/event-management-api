@@ -6,7 +6,7 @@ export interface CreateVenueInput {
   name: string;
   address?: string;
   capacity?: number;
-  pricePerHour: number;
+  pricePerDay: number;
   description?: string;
 }
 
@@ -14,7 +14,7 @@ export interface UpdateVenueInput {
   name?: string;
   address?: string;
   capacity?: number;
-  pricePerHour?: number;
+  pricePerDay?: number;
   description?: string;
 }
 
@@ -37,7 +37,7 @@ export class VenueService {
    * Create a new venue
    */
   async createVenue(venueData: CreateVenueInput): Promise<VenueResponse> {
-    const { name, address, capacity, pricePerHour, description } = venueData;
+    const { name, address, capacity, pricePerDay, description } = venueData;
 
     logger.info(`Creating new venue: ${name}`);
 
@@ -57,7 +57,7 @@ export class VenueService {
         state: 'Dhaka Division', // Default state
         capacity: capacity || 100,
         venueType: 'indoor', // Default venue type
-        pricePerHour,
+        pricePerDay,
         description: description || null,
       };
 
@@ -135,7 +135,7 @@ export class VenueService {
         ...(updateData.name && { name: updateData.name }),
         ...(updateData.address !== undefined && { address: updateData.address }),
         ...(updateData.capacity !== undefined && { capacity: updateData.capacity }),
-        ...(updateData.pricePerHour !== undefined && { pricePerHour: updateData.pricePerHour }),
+        ...(updateData.pricePerDay !== undefined && { pricePerDay: updateData.pricePerDay }),
         ...(updateData.description !== undefined && { description: updateData.description || null }),
       };
 

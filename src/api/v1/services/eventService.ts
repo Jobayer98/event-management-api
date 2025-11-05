@@ -24,7 +24,7 @@ export interface AvailabilityResponse {
     name: string;
     address: string | null;
     capacity: number | null;
-    pricePerHour: number;
+    pricePerDay: number;
   };
 }
 
@@ -195,8 +195,8 @@ export class EventService {
       }
 
       // Calculate total cost
-      const durationHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
-      const venueCost = venue.pricePerHour * durationHours;
+      const durationDays = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60 * 24));
+      const venueCost = venue.pricePerDay * durationDays;
       const mealCost = createdMeal ? createdMeal.pricePerPerson * peopleCount : 0;
       const totalCost = venueCost + mealCost;
 
@@ -374,8 +374,8 @@ export class EventService {
       }
 
       // Recalculate total cost
-      const durationHours = (existingEvent.endTime.getTime() - existingEvent.startTime.getTime()) / (1000 * 60 * 60);
-      const venueCost = existingEvent.venue.pricePerHour * durationHours;
+      const durationDays = Math.ceil((existingEvent.endTime.getTime() - existingEvent.startTime.getTime()) / (1000 * 60 * 60 * 24));
+      const venueCost = existingEvent.venue.pricePerDay * durationDays;
 
       let mealCost = 0;
       if (newMealId) {
