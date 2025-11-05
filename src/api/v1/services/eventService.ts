@@ -1,7 +1,7 @@
 import { eventRepository, CreateEventData, EventResponse, EventFilters, UpdateEventData } from '../repositories/eventRepository';
 import { venueRepository } from '../repositories/venueRepository';
 import { mealRepository } from '../repositories/mealRepository';
-import { mealService } from './mealService';
+
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
@@ -14,29 +14,12 @@ export interface CheckAvailabilityInput {
 export interface AvailabilityResponse {
   available: boolean;
   message: string;
-  conflictingEvents?: Array<{
-    startTime: Date;
-    endTime: Date;
-    eventType: string;
-  }>;
-  venue?: {
-    id: string;
-    name: string;
-    address: string | null;
-    capacity: number | null;
-    pricePerDay: number;
-  };
 }
 
 export interface CreateEventInput {
   userId: string;
   venueId: string;
-  meal?: {
-    name: string;
-    type?: string;
-    pricePerPerson: number;
-    description?: string;
-  };
+  mealId?: string;
   eventType: string;
   peopleCount: number;
   startTime: string;
@@ -45,12 +28,7 @@ export interface CreateEventInput {
 
 export interface UpdateEventInput {
   peopleCount?: number;
-  meal?: {
-    name: string;
-    type?: string;
-    pricePerPerson: number;
-    description?: string;
-  };
+  mealId?: string;
   removeMeal?: boolean;
 }
 
@@ -98,7 +76,6 @@ export class EventService {
         return {
           available: true,
           message: `${venue.name} is available for your event from ${startDateTime.toLocaleString()} to ${endDateTime.toLocaleString()}`,
-          venue,
         };
       } else {
         // Get conflicting events for detailed message
@@ -117,8 +94,6 @@ export class EventService {
         return {
           available: false,
           message: `Sorry, ${venue.name} is not available for the requested time. There are conflicting events: ${conflictDetails}. Please choose a different time slot.`,
-          conflictingEvents,
-          venue,
         };
       }
 
@@ -143,7 +118,7 @@ export class EventService {
    * Create a new event booking
    */
   async createEvent(eventData: CreateEventInput): Promise<EventResponse> {
-    const { userId, venueId, meal: mealData, eventType, peopleCount, startTime, endTime } = eventData;
+    const { userId, venueId, mealId, eventType, peopleCount, startTime, endTime } = eventData;
 
     logger.info(`Creating event booking for user ${userId} at venue ${venueId}`);
 
@@ -176,28 +151,40 @@ export class EventService {
         throw createError('Venue is no longer available for the selected time slot. Please check availability again.', 409);
       }
 
-      // Create meal if meal data is provided
-      let createdMeal = null;
-      let mealId = null;
-      if (mealData) {
-        logger.info(`Creating meal for event: ${mealData.name}`);
+      // Validate meal if mealId is provided
+      let selectedMeal = null;
+      if (mealId) {
+        logger.info(`Validating meal for event: ${mealId}`);
         try {
-          createdMeal = await mealService.createMeal(mealData);
-          mealId = createdMeal.id;
-          logger.info(`Meal created successfully for event: ${createdMeal.id}`);
+          selectedMeal = await mealRepository.findById(mealId);
+          if (!selectedMeal) {
+            logger.warn(`Event creation failed - meal not found: ${mealId}`);
+            throw createError('The selected meal could not be found. Please choose a different meal.', 404);
+          }
+
+          // Check if meal meets minimum guest requirement
+          if (selectedMeal.minimumGuests && peopleCount < selectedMeal.minimumGuests) {
+            logger.warn(`Event creation failed - people count below meal minimum: ${peopleCount} < ${selectedMeal.minimumGuests}`);
+            throw createError(`This meal requires a minimum of ${selectedMeal.minimumGuests} guests, but you have ${peopleCount} people.`, 400);
+          }
+
+          logger.info(`Meal validated successfully for event: ${selectedMeal.id}`);
         } catch (mealError: any) {
-          logger.error('Meal creation failed during event creation:', {
+          if (mealError.statusCode) {
+            throw mealError;
+          }
+          logger.error('Meal validation failed during event creation:', {
             error: mealError.message,
-            mealData,
+            mealId,
           });
-          throw createError('Failed to create meal for your event. Please check meal details and try again.', 400);
+          throw createError('Failed to validate meal for your event. Please try again.', 400);
         }
       }
 
       // Calculate total cost
       const durationDays = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60 * 24));
       const venueCost = venue.pricePerDay * durationDays;
-      const mealCost = createdMeal ? createdMeal.pricePerPerson * peopleCount : 0;
+      const mealCost = selectedMeal ? selectedMeal.pricePerPerson * peopleCount : 0;
       const totalCost = venueCost + mealCost;
 
       // Prepare event data
@@ -313,7 +300,7 @@ export class EventService {
    * Update event (only people count and meal)
    */
   async updateEvent(eventId: string, userId: string, updateData: UpdateEventInput): Promise<EventResponse> {
-    const { peopleCount, meal: mealData, removeMeal } = updateData;
+    const { peopleCount, mealId, removeMeal } = updateData;
 
     logger.info(`User ${userId} updating event ${eventId}`);
 
@@ -351,25 +338,39 @@ export class EventService {
 
       // Handle meal updates
       let newMealId = existingEvent.mealId;
-      let createdMeal = null;
+      let selectedMeal = null;
 
       if (removeMeal) {
         // Remove meal from event
         newMealId = null;
         logger.info(`Removing meal from event ${eventId}`);
-      } else if (mealData) {
-        // Create new meal for event
-        logger.info(`Creating new meal for event update: ${mealData.name}`);
+      } else if (mealId) {
+        // Validate new meal selection
+        logger.info(`Validating new meal for event update: ${mealId}`);
         try {
-          createdMeal = await mealService.createMeal(mealData);
-          newMealId = createdMeal.id;
-          logger.info(`New meal created successfully for event update: ${createdMeal.id}`);
+          selectedMeal = await mealRepository.findById(mealId);
+          if (!selectedMeal) {
+            logger.warn(`Event update failed - meal not found: ${mealId}`);
+            throw createError('The selected meal could not be found. Please choose a different meal.', 404);
+          }
+
+          // Check if meal meets minimum guest requirement
+          if (selectedMeal.minimumGuests && finalPeopleCount < selectedMeal.minimumGuests) {
+            logger.warn(`Event update failed - people count below meal minimum: ${finalPeopleCount} < ${selectedMeal.minimumGuests}`);
+            throw createError(`This meal requires a minimum of ${selectedMeal.minimumGuests} guests, but you have ${finalPeopleCount} people.`, 400);
+          }
+
+          newMealId = mealId;
+          logger.info(`New meal validated successfully for event update: ${selectedMeal.id}`);
         } catch (mealError: any) {
-          logger.error('Meal creation failed during event update:', {
+          if (mealError.statusCode) {
+            throw mealError;
+          }
+          logger.error('Meal validation failed during event update:', {
             error: mealError.message,
-            mealData,
+            mealId,
           });
-          throw createError('Failed to create meal for your event update. Please check meal details and try again.', 400);
+          throw createError('Failed to validate meal for your event update. Please try again.', 400);
         }
       }
 
@@ -379,9 +380,9 @@ export class EventService {
 
       let mealCost = 0;
       if (newMealId) {
-        if (createdMeal) {
-          // Use newly created meal
-          mealCost = createdMeal.pricePerPerson * finalPeopleCount;
+        if (selectedMeal) {
+          // Use newly selected meal
+          mealCost = selectedMeal.pricePerPerson * finalPeopleCount;
         } else if (existingEvent.meal) {
           // Use existing meal (only people count changed)
           mealCost = existingEvent.meal.pricePerPerson * finalPeopleCount;
