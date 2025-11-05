@@ -1,5 +1,4 @@
 import { prisma } from '../../../config';
-import { Event } from '@prisma/client';
 
 export interface CreateEventData {
   userId: string;
@@ -36,7 +35,7 @@ export interface EventResponse {
     name: string;
     address: string | null;
     capacity: number | null;
-    pricePerHour: number;
+    pricePerDay: number;
   };
   meal?: {
     id: string;
@@ -169,7 +168,7 @@ export class EventRepository {
             name: true,
             address: true,
             capacity: true,
-            pricePerHour: true,
+            pricePerDay: true,
           },
         },
         meal: {
@@ -188,7 +187,7 @@ export class EventRepository {
       totalCost: event.totalCost ? Number(event.totalCost) : null,
       venue: {
         ...event.venue,
-        pricePerHour: Number(event.venue.pricePerHour),
+        pricePerDay: Number(event.venue.pricePerDay),
       },
       meal: event.meal ? {
         ...event.meal,
@@ -210,7 +209,7 @@ export class EventRepository {
             name: true,
             address: true,
             capacity: true,
-            pricePerHour: true,
+            pricePerDay: true,
           },
         },
         meal: {
@@ -231,7 +230,7 @@ export class EventRepository {
       totalCost: event.totalCost ? Number(event.totalCost) : null,
       venue: {
         ...event.venue,
-        pricePerHour: Number(event.venue.pricePerHour),
+        pricePerDay: Number(event.venue.pricePerDay),
       },
       meal: event.meal ? {
         ...event.meal,
@@ -272,7 +271,7 @@ export class EventRepository {
             name: true,
             address: true,
             capacity: true,
-            pricePerHour: true,
+            pricePerDay: true,
           },
         },
         meal: {
@@ -294,7 +293,7 @@ export class EventRepository {
       totalCost: event.totalCost ? Number(event.totalCost) : null,
       venue: {
         ...event.venue,
-        pricePerHour: Number(event.venue.pricePerHour),
+        pricePerDay: Number(event.venue.pricePerDay),
       },
       meal: event.meal ? {
         ...event.meal,
@@ -338,7 +337,7 @@ export class EventRepository {
             name: true,
             address: true,
             capacity: true,
-            pricePerHour: true,
+            pricePerDay: true,
           },
         },
         meal: {
@@ -357,7 +356,7 @@ export class EventRepository {
       totalCost: event.totalCost ? Number(event.totalCost) : null,
       venue: {
         ...event.venue,
-        pricePerHour: Number(event.venue.pricePerHour),
+        pricePerDay: Number(event.venue.pricePerDay),
       },
       meal: event.meal ? {
         ...event.meal,

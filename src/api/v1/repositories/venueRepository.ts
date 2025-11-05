@@ -13,8 +13,8 @@ export interface CreateVenueData {
   capacity: number;
   area?: number | null;
   venueType: string;
-  pricePerHour: number;
-  minimumHours?: number;
+  pricePerDay: number;
+  minimumDays?: number;
   securityDeposit?: number | null;
   facilities?: string[];
   amenities?: string[];
@@ -45,8 +45,8 @@ export interface UpdateVenueData {
   capacity?: number;
   area?: number | null;
   venueType?: string;
-  pricePerHour?: number;
-  minimumHours?: number;
+  pricePerDay?: number;
+  minimumDays?: number;
   securityDeposit?: number | null;
   facilities?: string[];
   amenities?: string[];
@@ -78,8 +78,8 @@ export interface VenueResponse {
   capacity: number;
   area: number | null;
   venueType: string;
-  pricePerHour: number;
-  minimumHours: number;
+  pricePerDay: number;
+  minimumDays: number;
   securityDeposit: number | null;
   facilities: string[];
   amenities: string[];
@@ -109,7 +109,7 @@ export interface VenueListResponse {
   city: string;
   capacity: number;
   venueType: string;
-  pricePerHour: number;
+  pricePerDay: number;
   rating: number | null;
   totalReviews: number;
   images: string[];
@@ -135,7 +135,7 @@ export class VenueRepository {
 
     return {
       ...venue,
-      pricePerHour: Number(venue.pricePerHour),
+      pricePerDay: Number(venue.pricePerDay),
       latitude: venue.latitude ? Number(venue.latitude) : null,
       longitude: venue.longitude ? Number(venue.longitude) : null,
       area: venue.area ? Number(venue.area) : null,
@@ -156,7 +156,7 @@ export class VenueRepository {
 
     return {
       ...venue,
-      pricePerHour: Number(venue.pricePerHour),
+      pricePerDay: Number(venue.pricePerDay),
       latitude: venue.latitude ? Number(venue.latitude) : null,
       longitude: venue.longitude ? Number(venue.longitude) : null,
       area: venue.area ? Number(venue.area) : null,
@@ -176,7 +176,7 @@ export class VenueRepository {
 
     return {
       ...venue,
-      pricePerHour: Number(venue.pricePerHour),
+      pricePerDay: Number(venue.pricePerDay),
       latitude: venue.latitude ? Number(venue.latitude) : null,
       longitude: venue.longitude ? Number(venue.longitude) : null,
       area: venue.area ? Number(venue.area) : null,
@@ -227,12 +227,12 @@ export class VenueRepository {
 
     // Price filters
     if (minPrice !== undefined || maxPrice !== undefined) {
-      whereClause.pricePerHour = {};
+      whereClause.pricePerDay = {};
       if (minPrice !== undefined) {
-        whereClause.pricePerHour.gte = minPrice;
+        whereClause.pricePerDay.gte = minPrice;
       }
       if (maxPrice !== undefined) {
-        whereClause.pricePerHour.lte = maxPrice;
+        whereClause.pricePerDay.lte = maxPrice;
       }
     }
 
@@ -248,7 +248,7 @@ export class VenueRepository {
         city: true,
         capacity: true,
         venueType: true,
-        pricePerHour: true,
+        pricePerDay: true,
         rating: true,
         totalReviews: true,
         images: true,
@@ -261,7 +261,7 @@ export class VenueRepository {
 
     return venues.map(venue => ({
       ...venue,
-      pricePerHour: Number(venue.pricePerHour),
+      pricePerDay: Number(venue.pricePerDay),
       rating: venue.rating ? Number(venue.rating) : null,
     }));
   }
@@ -295,12 +295,12 @@ export class VenueRepository {
 
     // Price filters
     if (minPrice !== undefined || maxPrice !== undefined) {
-      whereClause.pricePerHour = {};
+      whereClause.pricePerDay = {};
       if (minPrice !== undefined) {
-        whereClause.pricePerHour.gte = minPrice;
+        whereClause.pricePerDay.gte = minPrice;
       }
       if (maxPrice !== undefined) {
-        whereClause.pricePerHour.lte = maxPrice;
+        whereClause.pricePerDay.lte = maxPrice;
       }
     }
 
