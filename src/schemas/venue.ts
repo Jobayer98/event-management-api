@@ -100,17 +100,17 @@ export const createVenueSchema = z.object({
     }),
 
   // Pricing
-  pricePerHour: z
+  pricePerDay: z
     .number()
-    .min(0, 'Price per hour cannot be negative')
-    .max(999999.99, 'Price per hour cannot exceed 999,999.99'),
+    .min(0, 'Price per day cannot be negative')
+    .max(999999.99, 'Price per day cannot exceed 999,999.99'),
   
-  minimumHours: z
+  minimumDays: z
     .number()
-    .int('Minimum hours must be a whole number')
-    .min(1, 'Minimum hours must be at least 1')
-    .max(24, 'Minimum hours cannot exceed 24')
-    .default(4),
+    .int('Minimum days must be a whole number')
+    .min(1, 'Minimum days must be at least 1')
+    .max(365, 'Minimum days cannot exceed 365')
+    .default(1),
 
   securityDeposit: z
     .number()
@@ -254,17 +254,17 @@ export const updateVenueSchema = z.object({
     .optional(),
 
   // Pricing
-  pricePerHour: z
+  pricePerDay: z
     .number()
-    .min(0, 'Price per hour cannot be negative')
-    .max(999999.99, 'Price per hour cannot exceed 999,999.99')
+    .min(0, 'Price per day cannot be negative')
+    .max(999999.99, 'Price per day cannot exceed 999,999.99')
     .optional(),
   
-  minimumHours: z
+  minimumDays: z
     .number()
-    .int('Minimum hours must be a whole number')
-    .min(1, 'Minimum hours must be at least 1')
-    .max(24, 'Minimum hours cannot exceed 24')
+    .int('Minimum days must be a whole number')
+    .min(1, 'Minimum days must be at least 1')
+    .max(365, 'Minimum days cannot exceed 365')
     .optional(),
 
   securityDeposit: z
@@ -403,7 +403,7 @@ export const venueQuerySchema = z.object({
     .optional(),
 
   sortBy: z
-    .enum(['name', 'capacity', 'pricePerHour', 'rating', 'createdAt'])
+    .enum(['name', 'capacity', 'pricePerDay', 'rating', 'createdAt'])
     .optional()
     .default('createdAt'),
 
