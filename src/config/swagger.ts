@@ -267,13 +267,13 @@ const swaggerDefinition: SwaggerDefinition = {
             enum: ['indoor', 'outdoor', 'hybrid'],
             example: 'indoor'
           },
-          pricePerHour: {
+          pricePerDay: {
             type: 'number',
             example: 250.00
           },
-          minimumHours: {
+          minimumDays: {
             type: 'integer',
-            example: 4
+            example: 1
           },
           securityDeposit: {
             type: 'number',
@@ -378,7 +378,7 @@ const swaggerDefinition: SwaggerDefinition = {
             example: '2024-01-15T10:30:00Z'
           }
         },
-        required: ['id', 'name', 'address', 'city', 'state', 'country', 'capacity', 'venueType', 'pricePerHour', 'createdAt', 'updatedAt']
+        required: ['id', 'name', 'address', 'city', 'state', 'country', 'capacity', 'venueType', 'pricePerDay', 'createdAt', 'updatedAt']
       },
       Meal: {
         type: 'object',

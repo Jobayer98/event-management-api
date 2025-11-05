@@ -376,7 +376,7 @@
  *         capacity:
  *           type: integer
  *           example: 200
- *         pricePerHour:
+ *         pricePerDay:
  *           type: number
  *           example: 150.00
  *         createdAt:
@@ -392,7 +392,7 @@
  *         - name
  *         - location
  *         - capacity
- *         - pricePerHour
+ *         - pricePerDay
  *         - createdAt
  *         - updatedAt
  *
