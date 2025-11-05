@@ -41,8 +41,8 @@ class App {
       optionsSuccessStatus: 200
     };
 
-    this.app.use(cors(corsOptions));
-
+    // this.app.use(cors());
+    this.app.use(cors());
     // Request logging middleware
     this.app.use(requestLogger);
 
