@@ -62,8 +62,8 @@ model Venue {
   venueType    String     @map("venue_type") @db.VarChar(50) // indoor, outdoor, hybrid
   
   // Pricing
-  pricePerHour Decimal    @map("price_per_hour") @db.Decimal(10, 2)
-  minimumHours Int        @default(4) @map("minimum_hours")
+  pricePerDay Decimal    @map("price_per_day") @db.Decimal(10, 2)
+  minimumDays  Int        @default(1) @map("minimum_days")
   securityDeposit Decimal? @map("security_deposit") @db.Decimal(10, 2)
   
   // Facilities & Amenities
@@ -105,12 +105,12 @@ model Venue {
   @@index([city])
   @@index([venueType])
   @@index([capacity])
-  @@index([pricePerHour])
+  @@index([pricePerDay])
   @@index([isActive])
   @@index([rating])
   @@index([createdAt])
   @@index([city, venueType])
-  @@index([capacity, pricePerHour])
+  @@index([capacity, pricePerDay])
   @@map("venues")
 }
 
