@@ -186,7 +186,16 @@ export const getAllEvents = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const queryParams = req.query as unknown as AdminEventQueryInput;
+    // Get query parameters directly from request (validation already passed)
+    const query = req.query as any;
+
+    // Convert and validate query parameters with safe defaults
+    const queryParams: AdminEventQueryInput = {
+      page: query.page ? parseInt(String(query.page), 10) || 1 : 1,
+      limit: query.limit ? parseInt(String(query.limit), 10) || 10 : 10,
+      status: query.status || undefined,
+      eventType: query.eventType || undefined,
+    };
 
     logger.info('Admin get all events request:', {
       adminId: req.user?.userId,

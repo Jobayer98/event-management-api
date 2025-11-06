@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { mealService } from '../services/mealService';
 import { logger } from '../../../config';
-import { CreateMealInput, UpdateMealInput, MealQueryInput } from '../../../schemas/meal';
+import { CreateMealInput, UpdateMealInput, AdminUpdateMealInput, MealQueryInput } from '../../../schemas/meal';
 
 /**
  * Create a new meal
@@ -80,7 +80,7 @@ export const getMealById = async (
 };
 
 /**
- * Update meal by ID
+ * Update meal by ID (Basic - for backward compatibility)
  * PUT /api/v1/meals/:id
  */
 export const updateMeal = async (
@@ -92,7 +92,7 @@ export const updateMeal = async (
     const { id } = req.params;
     const updateData = req.body;
 
-    logger.info(`Admin updating meal: ${id}`);
+    logger.info(`Updating meal: ${id}`);
 
     // Call the meal service to update the meal
     const meal = await mealService.updateMeal(id, updateData);
@@ -108,6 +108,46 @@ export const updateMeal = async (
 
   } catch (error: any) {
     logger.error('Update meal controller error:', {
+      error: error.message,
+      stack: error.stack,
+      mealId: req.params.id,
+      updateData: req.body,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Update meal by ID (Admin - comprehensive update)
+ * PUT /api/v1/admin/meals/:id
+ */
+export const adminUpdateMeal = async (
+  req: Request<{ id: string }, {}, AdminUpdateMealInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    logger.info(`Admin updating meal with comprehensive data: ${id}`);
+
+    // Call the meal service to update the meal with admin privileges
+    const meal = await mealService.adminUpdateMeal(id, updateData);
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Meal updated successfully',
+      data: {
+        meal: meal,
+      },
+    });
+
+  } catch (error: any) {
+    logger.error('Admin update meal controller error:', {
       error: error.message,
       stack: error.stack,
       mealId: req.params.id,
@@ -155,7 +195,7 @@ export const deleteMeal = async (
 };
 
 /**
- * Get meals with pagination and filters
+ * Get meals with pagination and filters (User - basic info only)
  * GET /api/v1/meals
  */
 export const getMeals = async (
@@ -189,7 +229,7 @@ export const getMeals = async (
       ...(maxPrice && { maxPrice }),
     };
 
-    // Call the meal service to get meals
+    // Call the meal service to get meals (user version - basic info only)
     const result = await mealService.getMeals(page, limit, filters);
 
     // Return success response
@@ -204,6 +244,66 @@ export const getMeals = async (
 
   } catch (error: any) {
     logger.error('Get meals controller error:', {
+      error: error.message,
+      stack: error.stack,
+      query: req.query,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Get meals with pagination and filters (Admin - detailed info)
+ * GET /api/v1/admin/meals
+ */
+export const getAdminMeals = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const query = req.query as any;
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const type = query.type;
+    const search = query.search;
+    const minPrice = query.minPrice ? parseFloat(query.minPrice) : undefined;
+    const maxPrice = query.maxPrice ? parseFloat(query.maxPrice) : undefined;
+
+    logger.info(`Admin fetching meals with filters`, {
+      page,
+      limit,
+      type,
+      search,
+      minPrice,
+      maxPrice
+    });
+
+    // Prepare filters
+    const filters = {
+      ...(type && { type }),
+      ...(search && { search }),
+      ...(minPrice && { minPrice }),
+      ...(maxPrice && { maxPrice }),
+    };
+
+    // Call the meal service to get admin meals (detailed info)
+    const result = await mealService.getAdminMeals(page, limit, filters);
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Meals retrieved successfully',
+      data: {
+        meals: result.meals,
+        pagination: result.pagination,
+      },
+    });
+
+  } catch (error: any) {
+    logger.error('Get admin meals controller error:', {
       error: error.message,
       stack: error.stack,
       query: req.query,
