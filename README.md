@@ -25,6 +25,12 @@ A comprehensive event management system built with Node.js, TypeScript, Express,
 - **Request Logging**: Winston-based logging with request/response tracking
 - **Health Checks**: Database connectivity and system health monitoring
 
+### Event Management
+- **Event Status Management**: Admins/organizers can update event status (pending, confirmed, cancelled)
+- **Event Listing**: Comprehensive event listing with pagination and filtering
+- **Event Details**: Detailed event information including venue and meal details
+- **Role-Based Access**: Admin/organizer-only endpoints for event management
+
 ## Tech Stack
 
 - **Runtime**: Node.js with TypeScript
@@ -57,9 +63,15 @@ A comprehensive event management system built with Node.js, TypeScript, Express,
 - `PUT /api/v1/auth/reset` - Confirm password reset
 
 ### Organizer Authentication
-- `POST /api/v1/organizer/register` - Register new organizer
-- `POST /api/v1/organizer/login` - Organizer login
-- `GET /api/v1/organizer/debug/admin` - Debug admin account status
+- `POST /api/v1/admin/login` - Organizer login
+- `GET /api/v1/admin/profile` - Get organizer profile
+- `PUT /api/v1/admin/profile` - Update organizer profile
+- `PUT /api/v1/admin/password` - Update organizer password
+
+### Organizer Event Management
+- `GET /api/v1/admin/events` - Get all events (Admin/Organizer only)
+- `GET /api/v1/admin/events/:eventId` - Get event by ID (Admin/Organizer only)
+- `PATCH /api/v1/admin/events/:eventId/status` - Update event status (Admin/Organizer only)
 
 ### System Health
 - `GET /api/health` - System health check
@@ -134,6 +146,66 @@ DB_CONTAINER_NAME=my-db
 
 The server will start on `http://localhost:8080` and automatically create the default admin account.
 
+6. **Access API Documentation**
+   
+   Interactive Swagger documentation is available at:
+   ```
+   http://localhost:8080/api-docs
+   ```
+
+## API Usage Examples
+
+### Organizer Event Management
+
+#### 1. Login as Admin/Organizer
+```bash
+curl -X POST http://localhost:8080/api/v1/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@eventmanagement.com",
+    "password": "Admin123!@#"
+  }'
+```
+
+#### 2. Get All Events (with pagination and filters)
+```bash
+curl -X GET "http://localhost:8080/api/v1/admin/events?page=1&limit=10&status=pending" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 3. Get Specific Event
+```bash
+curl -X GET http://localhost:8080/api/v1/admin/events/EVENT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 4. Update Event Status
+```bash
+curl -X PATCH http://localhost:8080/api/v1/admin/events/EVENT_ID/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "status": "confirmed"
+  }'
+```
+
+### Response Format
+All API responses follow this format:
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    // Response data here
+  }
+}
+```
+
+### Event Status Values
+- `pending` - Event is awaiting approval
+- `confirmed` - Event has been approved and confirmed
+- `cancelled` - Event has been cancelled
+
 ## Development Scripts
 
 - `npm run dev` - Start development server with auto-restart
@@ -192,6 +264,25 @@ The application uses Winston for comprehensive logging:
 - **Security Logging**: Authentication attempts and security events
 - **Database Logging**: Database operations and connection status
 - **File Logging**: Logs stored in `logs/` directory
+
+## API Documentation
+
+### Interactive Documentation
+The API includes comprehensive Swagger/OpenAPI documentation available at:
+- **Development**: `http://localhost:8080/api-docs`
+- **Production**: `https://api.eventmanagement.com/api-docs`
+
+### Documentation Features
+- **Interactive Testing**: Test API endpoints directly from the browser
+- **Request/Response Examples**: Complete examples for all endpoints
+- **Schema Definitions**: Detailed data models and validation rules
+- **Authentication Guide**: Step-by-step authentication instructions
+- **Error Handling**: Comprehensive error response documentation
+
+### API Documentation Files
+- `API_DOCUMENTATION.md` - Comprehensive API guide with examples
+- `src/config/swagger.ts` - Swagger configuration and schemas
+- Route files contain detailed JSDoc comments for each endpoint
 
 ## Contributing
 
