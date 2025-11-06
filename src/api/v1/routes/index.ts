@@ -4,6 +4,7 @@ import organizerRoutes from './organizer';
 import venueRoutes from './venues';
 import eventRoutes from './events';
 import mealRoutes from './meals';
+import paymentRoutes from './payments';
 
 const router = Router();
 
@@ -21,5 +22,7 @@ router.use('/meals', mealRoutes);
 
 // Event routes
 router.use('/events', eventRoutes);
+
+router.use('/payments', paymentRoutes);
 
 export default router;
