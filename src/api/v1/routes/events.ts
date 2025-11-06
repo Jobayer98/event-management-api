@@ -17,7 +17,7 @@ const router = Router();
  * /api/v1/events/check-availability:
  *   post:
  *     tags:
- *       - Events
+ *       - User - Events
  *     summary: Check venue availability
  *     description: Check if a venue is available for booking during specified time period
  *     requestBody:
@@ -134,7 +134,7 @@ router.post('/check-availability', validateBody(checkAvailabilitySchema), checkA
  * /api/v1/events:
  *   get:
  *     tags:
- *       - Events
+ *       - User - Events
  *     summary: Get user's events
  *     description: Retrieve a paginated list of events for the authenticated user with optional filters
  *     security:
@@ -245,7 +245,7 @@ router.get('/', authenticateToken, getUserEvents);
  * /api/v1/events:
  *   post:
  *     tags:
- *       - Events
+ *       - User - Events
  *     summary: Create new event
  *     description: Create a new event booking with optional catering by selecting existing meal
  *     security:
@@ -422,7 +422,7 @@ router.post('/', authenticateToken, validateBody(createEventSchema), createEvent
  * /api/v1/events/{id}:
  *   get:
  *     tags:
- *       - Events
+ *       - User - Events
  *     summary: Get event by ID
  *     description: Retrieve detailed information about a specific event
  *     security:
@@ -529,7 +529,7 @@ router.get('/:id', authenticateToken, getEventById);
  * /api/v1/events/{id}:
  *   put:
  *     tags:
- *       - Events
+ *       - User - Events
  *     summary: Update event
  *     description: Update event details (people count and meal selection only)
  *     security:

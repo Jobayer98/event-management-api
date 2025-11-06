@@ -113,29 +113,7 @@ const router = Router();
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Meals retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     meals:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: string
- *                             format: uuid
- *                           name:
- *                             type: string
- *                     pagination:
- *                       $ref: '#/components/schemas/Pagination'
+ *               $ref: '#/components/schemas/MealListResponse'
  *             examples:
  *               success:
  *                 summary: Successful meals retrieval
@@ -197,19 +175,7 @@ router.get('/', getMeals);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Meal retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     meal:
- *                       $ref: '#/components/schemas/Meal'
+ *               $ref: '#/components/schemas/MealDetailResponse'
  *             examples:
  *               success:
  *                 summary: Meal details retrieved

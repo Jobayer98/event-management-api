@@ -330,20 +330,109 @@
  *           type: string
  *           example: "Deluxe Wedding Buffet"
  *           description: "Name of the meal"
- *         type:
- *           type: string
- *           enum: [veg, nonveg, buffet]
- *           example: "buffet"
- *           description: "Type of meal service"
- *         pricePerPerson:
- *           type: number
- *           example: 45.99
- *           description: "Cost per person for the meal"
  *         description:
  *           type: string
  *           nullable: true
- *           example: "International cuisine buffet with live cooking stations"
+ *           example: "International cuisine buffet with live cooking stations and premium beverages"
  *           description: "Detailed description of the meal"
+ *         type:
+ *           type: string
+ *           enum: [veg, nonveg, buffet, plated]
+ *           example: "buffet"
+ *           description: "Type of meal"
+ *         cuisine:
+ *           type: string
+ *           nullable: true
+ *           example: "international"
+ *           description: "Cuisine type"
+ *         servingStyle:
+ *           type: string
+ *           enum: [buffet, plated, family_style]
+ *           example: "buffet"
+ *           description: "How the meal is served"
+ *         pricePerPerson:
+ *           type: number
+ *           example: 75.99
+ *           description: "Cost per person for the meal"
+ *         minimumGuests:
+ *           type: integer
+ *           example: 50
+ *           description: "Minimum number of guests required"
+ *         menuItems:
+ *           type: object
+ *           nullable: true
+ *           example: {
+ *             "appetizers": ["Bruschetta", "Stuffed Mushrooms"],
+ *             "main_course": ["Grilled Salmon", "Beef Tenderloin"],
+ *             "desserts": ["Tiramisu", "Chocolate Cake"]
+ *           }
+ *           description: "Menu items organized by category"
+ *         beverages:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [tea, coffee, soft_drinks, juices, water, mocktails, herbal_tea, fresh_juices, coconut_water, kombucha]
+ *           example: ["tea", "coffee", "juices", "mocktails"]
+ *           description: "Available beverages"
+ *         specialDietary:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [halal, kosher, gluten_free, dairy_free, nut_free, vegan]
+ *           example: ["halal", "gluten_free"]
+ *           description: "Special dietary accommodations"
+ *         serviceHours:
+ *           type: object
+ *           nullable: true
+ *           properties:
+ *             setup:
+ *               type: number
+ *               minimum: 0
+ *               maximum: 24
+ *             service:
+ *               type: number
+ *               minimum: 0
+ *               maximum: 24
+ *             cleanup:
+ *               type: number
+ *               minimum: 0
+ *               maximum: 24
+ *           example: { "setup": 2, "service": 4, "cleanup": 1 }
+ *           description: "Service time breakdown in hours"
+ *         staffIncluded:
+ *           type: boolean
+ *           example: true
+ *           description: "Whether service staff is included"
+ *         equipmentIncluded:
+ *           type: boolean
+ *           example: true
+ *           description: "Whether serving equipment is included"
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uri
+ *           example: ["https://example.com/meal1.jpg", "https://example.com/meal2.jpg"]
+ *           description: "Array of food image URLs"
+ *         isActive:
+ *           type: boolean
+ *           example: true
+ *           description: "Whether the meal is active"
+ *         isPopular:
+ *           type: boolean
+ *           example: false
+ *           description: "Whether the meal is marked as popular"
+ *         rating:
+ *           type: number
+ *           nullable: true
+ *           minimum: 0
+ *           maximum: 5
+ *           example: 4.5
+ *           description: "Average rating of the meal"
+ *         totalReviews:
+ *           type: integer
+ *           example: 127
+ *           description: "Total number of reviews"
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -355,9 +444,368 @@
  *       required:
  *         - id
  *         - name
+ *         - type
+ *         - servingStyle
  *         - pricePerPerson
+ *         - minimumGuests
+ *         - beverages
+ *         - specialDietary
+ *         - staffIncluded
+ *         - equipmentIncluded
+ *         - images
+ *         - isActive
+ *         - isPopular
+ *         - totalReviews
  *         - createdAt
  *         - updatedAt
+ *
+ *     # Meal List Response (User - Basic Info)
+ *     MealListItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         name:
+ *           type: string
+ *           example: "Deluxe Wedding Buffet"
+ *           description: "Name of the meal"
+ *       required:
+ *         - id
+ *         - name
+ *
+ *     # Admin Meal List Response (Detailed Info)
+ *     AdminMealListItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         name:
+ *           type: string
+ *           example: "Deluxe Wedding Buffet"
+ *           description: "Name of the meal"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           example: "International cuisine buffet with live cooking stations"
+ *           description: "Detailed description of the meal"
+ *         price_per_person:
+ *           type: number
+ *           example: 75.99
+ *           description: "Cost per person for the meal"
+ *         minimum_guests:
+ *           type: integer
+ *           example: 50
+ *           description: "Minimum number of guests required"
+ *         serving_style:
+ *           type: string
+ *           enum: [buffet, plated, family_style]
+ *           example: "buffet"
+ *           description: "How the meal is served"
+ *         meal_type:
+ *           type: string
+ *           enum: [veg, nonveg, buffet, plated]
+ *           example: "buffet"
+ *           description: "Type of meal"
+ *         cuisine:
+ *           type: string
+ *           nullable: true
+ *           example: "international"
+ *           description: "Cuisine type"
+ *       required:
+ *         - id
+ *         - name
+ *         - description
+ *         - price_per_person
+ *         - minimum_guests
+ *         - serving_style
+ *         - meal_type
+ *         - cuisine
+ *
+ *     # Meal Request Schemas
+ *     CreateMealRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           minLength: 2
+ *           maxLength: 100
+ *           example: "Premium Wedding Buffet"
+ *           description: "Name of the meal"
+ *         description:
+ *           type: string
+ *           maxLength: 2000
+ *           example: "Exquisite international cuisine buffet with live cooking stations"
+ *           description: "Detailed description of the meal"
+ *         type:
+ *           type: string
+ *           enum: [veg, nonveg, buffet, plated]
+ *           example: "buffet"
+ *           description: "Type of meal"
+ *         cuisine:
+ *           type: string
+ *           maxLength: 50
+ *           example: "international"
+ *           description: "Cuisine type"
+ *         servingStyle:
+ *           type: string
+ *           enum: [buffet, plated, family_style]
+ *           example: "buffet"
+ *           description: "How the meal is served"
+ *         pricePerPerson:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 9999.99
+ *           example: 75.99
+ *           description: "Cost per person for the meal"
+ *         minimumGuests:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 10000
+ *           example: 50
+ *           description: "Minimum number of guests required"
+ *         menuItems:
+ *           type: object
+ *           example: {
+ *             "appetizers": ["Bruschetta", "Stuffed Mushrooms"],
+ *             "main_course": ["Grilled Salmon", "Beef Tenderloin"],
+ *             "desserts": ["Tiramisu", "Chocolate Cake"]
+ *           }
+ *           description: "Menu items organized by category"
+ *         beverages:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [tea, coffee, soft_drinks, juices, water, mocktails, herbal_tea, fresh_juices, coconut_water, kombucha]
+ *           example: ["tea", "coffee", "juices", "mocktails"]
+ *           description: "Available beverages"
+ *         specialDietary:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [halal, kosher, gluten_free, dairy_free, nut_free, vegan]
+ *           example: ["halal", "gluten_free"]
+ *           description: "Special dietary accommodations"
+ *         serviceHours:
+ *           type: object
+ *           properties:
+ *             setup:
+ *               type: number
+ *               minimum: 0
+ *               maximum: 24
+ *             service:
+ *               type: number
+ *               minimum: 0
+ *               maximum: 24
+ *             cleanup:
+ *               type: number
+ *               minimum: 0
+ *               maximum: 24
+ *           example: { "setup": 2, "service": 4, "cleanup": 1 }
+ *           description: "Service time breakdown in hours"
+ *         staffIncluded:
+ *           type: boolean
+ *           example: true
+ *           description: "Whether service staff is included"
+ *         equipmentIncluded:
+ *           type: boolean
+ *           example: true
+ *           description: "Whether serving equipment is included"
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: uri
+ *           example: ["https://example.com/meal1.jpg", "https://example.com/meal2.jpg"]
+ *           description: "Array of food image URLs"
+ *         isActive:
+ *           type: boolean
+ *           example: true
+ *           description: "Whether the meal is active"
+ *         isPopular:
+ *           type: boolean
+ *           example: false
+ *           description: "Whether the meal is marked as popular"
+ *       required:
+ *         - name
+ *         - type
+ *         - servingStyle
+ *         - pricePerPerson
+ *
+ *     UpdateMealRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           minLength: 2
+ *           maxLength: 100
+ *           example: "Premium Wedding Buffet"
+ *           description: "Updated name of the meal"
+ *         description:
+ *           type: string
+ *           maxLength: 2000
+ *           example: "Updated description of the meal"
+ *           description: "Updated detailed description"
+ *         type:
+ *           type: string
+ *           enum: [veg, nonveg, buffet, plated]
+ *           example: "buffet"
+ *           description: "Updated meal type"
+ *         pricePerPerson:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 9999.99
+ *           example: 85.99
+ *           description: "Updated cost per person"
+ *
+ *     AdminUpdateMealRequest:
+ *       allOf:
+ *         - $ref: '#/components/schemas/CreateMealRequest'
+ *         - type: object
+ *           properties:
+ *             rating:
+ *               type: number
+ *               minimum: 0
+ *               maximum: 5
+ *               example: 4.5
+ *               description: "Meal rating (admin can update)"
+ *             totalReviews:
+ *               type: integer
+ *               minimum: 0
+ *               example: 127
+ *               description: "Total number of reviews (admin can update)"
+ *
+ *     # Meal Response Schemas
+ *     MealListResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: "Meals retrieved successfully"
+ *         data:
+ *           type: object
+ *           properties:
+ *             meals:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/MealListItem'
+ *             pagination:
+ *               $ref: '#/components/schemas/Pagination'
+ *           required:
+ *             - meals
+ *             - pagination
+ *       required:
+ *         - success
+ *         - message
+ *         - data
+ *
+ *     AdminMealListResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: "Meals retrieved successfully"
+ *         data:
+ *           type: object
+ *           properties:
+ *             meals:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/AdminMealListItem'
+ *             pagination:
+ *               $ref: '#/components/schemas/Pagination'
+ *           required:
+ *             - meals
+ *             - pagination
+ *       required:
+ *         - success
+ *         - message
+ *         - data
+ *
+ *     MealDetailResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: "Meal retrieved successfully"
+ *         data:
+ *           type: object
+ *           properties:
+ *             meal:
+ *               $ref: '#/components/schemas/Meal'
+ *           required:
+ *             - meal
+ *       required:
+ *         - success
+ *         - message
+ *         - data
+ *
+ *     MealCreateResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: "Meal created successfully"
+ *         data:
+ *           type: object
+ *           properties:
+ *             meal:
+ *               $ref: '#/components/schemas/Meal'
+ *           required:
+ *             - meal
+ *       required:
+ *         - success
+ *         - message
+ *         - data
+ *
+ *     MealUpdateResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: "Meal updated successfully"
+ *         data:
+ *           type: object
+ *           properties:
+ *             meal:
+ *               $ref: '#/components/schemas/Meal'
+ *           required:
+ *             - meal
+ *       required:
+ *         - success
+ *         - message
+ *         - data
+ *
+ *     MealDeleteResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         message:
+ *           type: string
+ *           example: "Meal deleted successfully"
+ *       required:
+ *         - success
+ *         - message
  *
  *     # Venue Schema (referenced by Event)
  *     Venue:

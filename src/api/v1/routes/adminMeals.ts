@@ -2,13 +2,13 @@ import { Router } from 'express';
 import { 
   createMeal, 
   getMealById, 
-  updateMeal, 
+  adminUpdateMeal, 
   deleteMeal, 
   getAdminMeals 
-} from '../../controllers/mealController';
-import { validateBody } from '../../../../middleware/validation';
-import { authenticateToken, requireRole } from '../../../../middleware/auth';
-import { createMealSchema, updateMealSchema } from '../../../../schemas/meal';
+} from '../controllers/mealController';
+import { validateBody } from '../../../middleware/validation';
+import { authenticateToken, requireRole } from '../../../middleware/auth';
+import { createMealSchema, adminUpdateMealSchema } from '../../../schemas/meal';
 
 const router = Router();
 
@@ -68,43 +68,7 @@ const router = Router();
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Meals retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     meals:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: string
- *                             format: uuid
- *                           name:
- *                             type: string
- *                           description:
- *                             type: string
- *                             nullable: true
- *                           price_per_person:
- *                             type: number
- *                           minimum_guests:
- *                             type: integer
- *                           serving_style:
- *                             type: string
- *                           meal_type:
- *                             type: string
- *                           cuisine:
- *                             type: string
- *                             nullable: true
- *                     pagination:
- *                       $ref: '#/components/schemas/Pagination'
+ *               $ref: '#/components/schemas/AdminMealListResponse'
  *       401:
  *         description: Unauthorized
  *       403:
@@ -184,8 +148,8 @@ router.get('/:id', authenticateToken, requireRole(['organizer']), getMealById);
  *   put:
  *     tags:
  *       - Admin - Meals
- *     summary: Update meal (Admin)
- *     description: Update meal details
+ *     summary: Update meal (Admin - Comprehensive)
+ *     description: Update all meal properties including name, description, pricing, menu items, service details, and status
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -201,10 +165,26 @@ router.get('/:id', authenticateToken, requireRole(['organizer']), getMealById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateMealRequest'
+ *             $ref: '#/components/schemas/AdminUpdateMealRequest'
  *     responses:
  *       200:
  *         description: Meal updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Meal updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     meal:
+ *                       $ref: '#/components/schemas/Meal'
  *       400:
  *         description: Validation error
  *       401:
@@ -218,7 +198,7 @@ router.get('/:id', authenticateToken, requireRole(['organizer']), getMealById);
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', authenticateToken, requireRole(['organizer']), validateBody(updateMealSchema), updateMeal);
+router.put('/:id', authenticateToken, requireRole(['organizer']), validateBody(adminUpdateMealSchema), adminUpdateMeal);
 
 /**
  * @swagger

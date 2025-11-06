@@ -729,24 +729,36 @@ const swaggerDefinition: SwaggerDefinition = {
       description: 'User authentication and authorization endpoints'
     },
     {
-      name: 'Events',
+      name: 'User - Events',
       description: 'Event booking and management endpoints'
     },
     {
-      name: 'Meals',
+      name: 'User - Meals',
       description: 'Meal options and catering management endpoints'
     },
     {
-      name: 'Venues',
+      name: 'User - Venues',
+      description: 'Book a venue for an event'
+    },
+    {
+      name: 'Admin - Venues',
       description: 'Venue management endpoints by Admin'
     },
     {
-      name: 'Admin',
+      name: 'Admin - Auth',
       description: 'Admin authentication and profile management endpoints'
     },
     {
-      name: 'Admin Events',
-      description: 'Admin/Organizer event management endpoints for viewing and updating event status'
+      name: 'Admin - Events',
+      description: 'Admin event management endpoints for viewing and updating event status'
+    },
+    {
+      name: 'Admin - Meals',
+      description: 'Admin meal management endpoints for creating, updating, and managing meal options'
+    },
+    {
+      name: 'User - Meals',
+      description: 'User meal browsing endpoints for viewing available meal options'
     }
   ]
 };
@@ -762,3 +774,9 @@ const options = {
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
+
+// Debug: Log the generated spec to see if our routes are included
+if (process.env.NODE_ENV === 'development') {
+  const spec = swaggerSpec as { paths?: Record<string, any> };
+  console.log('Swagger paths found:', Object.keys(spec.paths || {}));
+}

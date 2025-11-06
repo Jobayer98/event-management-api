@@ -16,6 +16,27 @@ export interface UpdateMealInput {
   description?: string;
 }
 
+export interface AdminUpdateMealInput {
+  name?: string;
+  description?: string;
+  type?: string;
+  cuisine?: string;
+  servingStyle?: string;
+  pricePerPerson?: number;
+  minimumGuests?: number;
+  menuItems?: any;
+  beverages?: string[];
+  specialDietary?: string[];
+  serviceHours?: any;
+  staffIncluded?: boolean;
+  equipmentIncluded?: boolean;
+  images?: string[];
+  isActive?: boolean;
+  isPopular?: boolean;
+  rating?: number;
+  totalReviews?: number;
+}
+
 export interface MealListResult {
   meals: MealListResponse[];
   pagination: {
@@ -286,6 +307,73 @@ export class MealService {
       });
 
       throw createError('Unable to retrieve meals at this time. Please try again later.', 500);
+    }
+  }
+
+  /**
+   * Update meal by ID (Admin - comprehensive update)
+   */
+  async adminUpdateMeal(id: string, updateData: AdminUpdateMealInput): Promise<MealResponse> {
+    logger.info(`Admin updating meal comprehensively: ${id}`);
+
+    try {
+      // Check if meal exists
+      const exists = await mealRepository.existsById(id);
+      if (!exists) {
+        logger.warn(`Admin meal update failed - not found: ${id}`);
+        throw createError('The requested meal could not be found. It may have been removed from the menu.', 404);
+      }
+
+      // Prepare comprehensive update data
+      const updateMealData: UpdateMealData = {
+        ...(updateData.name !== undefined && { name: updateData.name }),
+        ...(updateData.description !== undefined && { description: updateData.description || null }),
+        ...(updateData.type !== undefined && { type: updateData.type }),
+        ...(updateData.cuisine !== undefined && { cuisine: updateData.cuisine || null }),
+        ...(updateData.servingStyle !== undefined && { servingStyle: updateData.servingStyle }),
+        ...(updateData.pricePerPerson !== undefined && { pricePerPerson: updateData.pricePerPerson }),
+        ...(updateData.minimumGuests !== undefined && { minimumGuests: updateData.minimumGuests }),
+        ...(updateData.menuItems !== undefined && { menuItems: updateData.menuItems }),
+        ...(updateData.beverages !== undefined && { beverages: updateData.beverages }),
+        ...(updateData.specialDietary !== undefined && { specialDietary: updateData.specialDietary }),
+        ...(updateData.serviceHours !== undefined && { serviceHours: updateData.serviceHours }),
+        ...(updateData.staffIncluded !== undefined && { staffIncluded: updateData.staffIncluded }),
+        ...(updateData.equipmentIncluded !== undefined && { equipmentIncluded: updateData.equipmentIncluded }),
+        ...(updateData.images !== undefined && { images: updateData.images }),
+        ...(updateData.isActive !== undefined && { isActive: updateData.isActive }),
+        ...(updateData.isPopular !== undefined && { isPopular: updateData.isPopular }),
+        ...(updateData.rating !== undefined && { rating: updateData.rating }),
+        ...(updateData.totalReviews !== undefined && { totalReviews: updateData.totalReviews }),
+      };
+
+      // Update meal
+      const meal = await mealRepository.updateById(id, updateMealData);
+
+      logger.info(`Admin meal updated successfully: ${id}`);
+      return meal;
+
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Admin meal update error:', {
+        error: error.message,
+        id,
+      });
+
+      // Handle record not found errors
+      if (error.code === 'P2025') {
+        throw createError('The requested meal could not be found. It may have been removed from the menu.', 404);
+      }
+
+      // Handle other database errors
+      if (error.code?.startsWith('P')) {
+        throw createError('Unable to update meal at this time. Please try again later.', 500);
+      }
+
+      throw createError('Unable to update meal at this time. Please try again later.', 500);
     }
   }
 }

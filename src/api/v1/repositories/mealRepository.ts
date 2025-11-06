@@ -36,6 +36,8 @@ export interface UpdateMealData {
   images?: string[];
   isActive?: boolean;
   isPopular?: boolean;
+  rating?: number | null;
+  totalReviews?: number;
 }
 
 export interface MealResponse {

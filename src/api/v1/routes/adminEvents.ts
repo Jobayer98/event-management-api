@@ -1,283 +1,18 @@
-import { Router } from 'express';
-import {
-    loginAdmin,
-    getAdminProfile,
-    updateAdminProfile,
-    updateAdminPassword,
-    getAllEvents,
-    getEventById,
-    updateEventStatus
-} from '../controllers/organizerController';
-import { validateBody, validateQuery } from '../../../middleware/validation';
-import { authenticateToken, requireRole } from '../../../middleware/auth';
-import {
-    loginOrganizerSchema,
-    updateAdminProfileSchema,
-    updateAdminPasswordSchema
-} from '../../../schemas/auth';
-import {
-    updateEventStatusSchema,
-    adminEventQuerySchema
-} from '../../../schemas/event';
+
+import { Router } from "express";
+import { authenticateToken, requireRole } from "../../../middleware/auth";
+import { validateBody } from "../../../middleware/validation";
+import { updateEventStatusSchema } from "../../../schemas/event";
+import { getAllEvents, getEventById, updateEventStatus } from "../controllers/organizerController";
 
 const router = Router();
-
-
-
-/**
- * @swagger
- * /api/v1/admin/login:
- *   post:
- *     tags:
- *       - Admin
- *     summary: Login admin
- *     description: Authenticates an admin with email and password, returns JWT tokens with admin privileges
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 maxLength: 150
- *                 example: "admin@admin.com"
- *                 description: "Admin's email address"
- *               password:
- *                 type: string
- *                 minLength: 6
- *                 maxLength: 255
- *                 example: "Admin123!@"
- *                 description: "Admin's password"
- *     responses:
- *       200:
- *         description: Admin logged in successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Admin logged in successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     organizer:
- *                       $ref: '#/components/schemas/Admin'
- *                     token:
- *                       type: string
- *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
- *       401:
- *         description: Invalid credentials
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.post('/login', validateBody(loginOrganizerSchema), loginAdmin);
-
-/**
- * @swagger
- * /api/v1/admin/profile:
- *   get:
- *     tags:
- *       - Admin
- *     summary: Get admin profile
- *     description: Retrieves the current admin's profile information
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Admin profile retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Admin profile retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     admin:
- *                       $ref: '#/components/schemas/Admin'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Admin not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.get('/profile', authenticateToken, requireRole(['organizer', 'admin']), getAdminProfile);
-
-/**
- * @swagger
- * /api/v1/admin/profile:
- *   put:
- *     tags:
- *       - Admin
- *     summary: Update admin profile
- *     description: Updates the current admin's profile information (name and phone)
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 minLength: 2
- *                 maxLength: 100
- *                 example: "Updated Admin Name"
- *                 description: "Admin's full name"
- *               phone:
- *                 type: string
- *                 maxLength: 20
- *                 pattern: "^\\+?[\\d\\s\\-\\(\\)]+$"
- *                 example: "+1234567890"
- *                 description: "Admin's phone number"
- *     responses:
- *       200:
- *         description: Admin profile updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Admin profile updated successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     admin:
- *                       $ref: '#/components/schemas/Admin'
- *       400:
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Admin not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.put('/profile', authenticateToken, requireRole(['organizer', 'admin']), validateBody(updateAdminProfileSchema), updateAdminProfile);
-
-/**
- * @swagger
- * /api/v1/admin/password:
- *   put:
- *     tags:
- *       - Admin
- *     summary: Update admin password
- *     description: Updates the current admin's password
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - currentPassword
- *               - newPassword
- *             properties:
- *               currentPassword:
- *                 type: string
- *                 minLength: 1
- *                 maxLength: 255
- *                 example: "CurrentPassword123!"
- *                 description: "Current password for verification"
- *               newPassword:
- *                 type: string
- *                 minLength: 8
- *                 maxLength: 255
- *                 pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]"
- *                 example: "NewPassword123!"
- *                 description: "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
- *     responses:
- *       200:
- *         description: Admin password updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Admin password updated successfully"
- *       400:
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *       401:
- *         description: Unauthorized or current password incorrect
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Admin not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.put('/password', authenticateToken, requireRole(['organizer', 'admin']), validateBody(updateAdminPasswordSchema), updateAdminPassword);
 
 /**
  * @swagger
  * /api/v1/admin/events:
  *   get:
  *     tags:
- *       - Admin Events
+ *       - Admin - Events
  *     summary: Get all events (Admin/Organizer only)
  *     description: |
  *       Retrieves a paginated list of all events in the system with optional filtering capabilities.
@@ -399,7 +134,7 @@ router.put('/password', authenticateToken, requireRole(['organizer', 'admin']), 
  *               message: "Internal server error"
  *               error: "Failed to retrieve events"
  */
-router.get('/events',
+router.get('/',
     authenticateToken,
     requireRole(['organizer', 'admin']),
     getAllEvents
@@ -410,7 +145,7 @@ router.get('/events',
  * /api/v1/admin/events/{eventId}:
  *   get:
  *     tags:
- *       - Admin Events
+ *       - Admin - Events
  *     summary: Get event by ID (Admin/Organizer only)
  *     description: |
  *       Retrieves detailed information about a specific event by its unique identifier.
@@ -514,7 +249,7 @@ router.get('/events',
  *               message: "Internal server error"
  *               error: "Failed to retrieve event"
  */
-router.get('/events/:eventId',
+router.get('/:eventId',
     authenticateToken,
     requireRole(['organizer', 'admin']),
     getEventById
@@ -525,7 +260,7 @@ router.get('/events/:eventId',
  * /api/v1/admin/events/{eventId}/status:
  *   patch:
  *     tags:
- *       - Admin Events
+ *       - Admin - Events
  *     summary: Update event status (Admin/Organizer only)
  *     description: |
  *       Updates the status of a specific event. This is a key administrative function that allows
@@ -666,7 +401,7 @@ router.get('/events/:eventId',
  *               message: "Internal server error"
  *               error: "Failed to update event status"
  */
-router.patch('/events/:eventId/status',
+router.patch('/:eventId/status',
     authenticateToken,
     requireRole(['organizer', 'admin']),
     validateBody(updateEventStatusSchema),

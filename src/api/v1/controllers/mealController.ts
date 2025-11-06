@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { mealService } from '../services/mealService';
 import { logger } from '../../../config';
-import { CreateMealInput, UpdateMealInput, MealQueryInput } from '../../../schemas/meal';
+import { CreateMealInput, UpdateMealInput, AdminUpdateMealInput, MealQueryInput } from '../../../schemas/meal';
 
 /**
  * Create a new meal
@@ -80,7 +80,7 @@ export const getMealById = async (
 };
 
 /**
- * Update meal by ID
+ * Update meal by ID (Basic - for backward compatibility)
  * PUT /api/v1/meals/:id
  */
 export const updateMeal = async (
@@ -92,7 +92,7 @@ export const updateMeal = async (
     const { id } = req.params;
     const updateData = req.body;
 
-    logger.info(`Admin updating meal: ${id}`);
+    logger.info(`Updating meal: ${id}`);
 
     // Call the meal service to update the meal
     const meal = await mealService.updateMeal(id, updateData);
@@ -108,6 +108,46 @@ export const updateMeal = async (
 
   } catch (error: any) {
     logger.error('Update meal controller error:', {
+      error: error.message,
+      stack: error.stack,
+      mealId: req.params.id,
+      updateData: req.body,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Update meal by ID (Admin - comprehensive update)
+ * PUT /api/v1/admin/meals/:id
+ */
+export const adminUpdateMeal = async (
+  req: Request<{ id: string }, {}, AdminUpdateMealInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    logger.info(`Admin updating meal with comprehensive data: ${id}`);
+
+    // Call the meal service to update the meal with admin privileges
+    const meal = await mealService.adminUpdateMeal(id, updateData);
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Meal updated successfully',
+      data: {
+        meal: meal,
+      },
+    });
+
+  } catch (error: any) {
+    logger.error('Admin update meal controller error:', {
       error: error.message,
       stack: error.stack,
       mealId: req.params.id,
