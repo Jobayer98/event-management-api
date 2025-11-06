@@ -1,7 +1,9 @@
 import { organizerRepository, CreateOrganizerData, OrganizerResponse } from '../repositories/organizerRepository';
+import { eventRepository, EventResponse, EventFilters } from '../repositories/eventRepository';
 import { hashPassword, generateToken, comparePassword } from '../../../utils/auth';
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
+import { UpdateEventStatusInput, AdminEventQueryInput } from '../../../schemas/event';
 
 export interface UpdateAdminProfileData {
   name?: string;
@@ -21,6 +23,17 @@ export interface LoginOrganizerData {
 export interface LoginOrganizerResponse {
   organizer: OrganizerResponse;
   token: string;
+}
+
+export interface OrganizerEventListResponse {
+  events: EventResponse[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalEvents: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
 
 export class OrganizerService {
@@ -219,6 +232,108 @@ export class OrganizerService {
       });
 
       throw createError('Password update failed', 500);
+    }
+  }
+
+  /**
+   * Get all events with pagination and filters (Organizer only)
+   */
+  async getAllEvents(queryParams: AdminEventQueryInput): Promise<OrganizerEventListResponse> {
+    try {
+      const { page, limit, status, eventType } = queryParams;
+
+      const skip = (page - 1) * limit;
+      const filters: EventFilters = {};
+
+      if (status) filters.status = status;
+      if (eventType) filters.eventType = eventType;
+
+      // Get events and total count
+      const [events, totalEvents] = await Promise.all([
+        eventRepository.findAll(skip, limit, filters),
+        eventRepository.countAll(filters)
+      ]);
+
+      const totalPages = Math.ceil(totalEvents / limit);
+
+      return {
+        events,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalEvents,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      };
+    } catch (error: any) {
+      logger.error('Get all events error:', {
+        error: error.message,
+        queryParams,
+      });
+
+      throw createError('Failed to retrieve events', 500);
+    }
+  }
+
+  /**
+   * Get event by ID (Organizer only)
+   */
+  async getEventById(eventId: string): Promise<EventResponse> {
+    try {
+      const event = await eventRepository.findById(eventId);
+
+      if (!event) {
+        throw createError('Event not found', 404);
+      }
+
+      return event;
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Get event by ID error:', {
+        error: error.message,
+        eventId,
+      });
+
+      throw createError('Failed to retrieve event', 500);
+    }
+  }
+
+  /**
+   * Update event status (Organizer only)
+   */
+  async updateEventStatus(eventId: string, statusData: UpdateEventStatusInput): Promise<EventResponse> {
+    try {
+      // Check if event exists
+      const existingEvent = await eventRepository.findById(eventId);
+
+      if (!existingEvent) {
+        throw createError('Event not found', 404);
+      }
+
+      // Update the event status
+      const updatedEvent = await eventRepository.updateStatusById(eventId, statusData.status);
+
+      logger.info(`Event status updated successfully: ${eventId} -> ${statusData.status}`);
+
+      return updatedEvent;
+    } catch (error: any) {
+      // If it's already our custom error, re-throw it
+      if (error.statusCode) {
+        throw error;
+      }
+
+      logger.error('Update event status error:', {
+        error: error.message,
+        eventId,
+        statusData,
+      });
+
+      throw createError('Failed to update event status', 500);
     }
   }
 

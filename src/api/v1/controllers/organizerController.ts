@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { organizerService } from '../services/organizerService';
 import { logger } from '../../../config';
 import { LoginOrganizerInput, UpdateAdminProfileInput, UpdateAdminPasswordInput } from '../../../schemas/auth';
+import { UpdateEventStatusInput, AdminEventQueryInput } from '../../../schemas/event';
 
 /**
  * Login admin
@@ -168,6 +169,146 @@ export const updateAdminPassword = async (
       error: error.message,
       stack: error.stack,
       adminId: req.user?.userId,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Get all events (Admin/Organizer only)
+ * GET /api/v1/admin/events
+ */
+export const getAllEvents = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const queryParams = req.query as unknown as AdminEventQueryInput;
+
+    logger.info('Admin get all events request:', {
+      adminId: req.user?.userId,
+      queryParams,
+    });
+
+    // Get all events with pagination and filters
+    const result = await organizerService.getAllEvents(queryParams);
+
+    logger.info('Admin get all events successful:', {
+      adminId: req.user?.userId,
+      totalEvents: result.pagination.totalEvents,
+      currentPage: result.pagination.currentPage,
+    });
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Events retrieved successfully',
+      data: result,
+    });
+
+  } catch (error: any) {
+    logger.error('Admin get all events controller error:', {
+      error: error.message,
+      stack: error.stack,
+      adminId: req.user?.userId,
+      queryParams: req.query,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Get event by ID (Admin/Organizer only)
+ * GET /api/v1/admin/events/:eventId
+ */
+export const getEventById = async (
+  req: Request<{ eventId: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { eventId } = req.params;
+
+    logger.info('Admin get event by ID request:', {
+      adminId: req.user?.userId,
+      eventId,
+    });
+
+    // Get event by ID
+    const event = await organizerService.getEventById(eventId);
+
+    logger.info('Admin get event by ID successful:', {
+      adminId: req.user?.userId,
+      eventId,
+    });
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Event retrieved successfully',
+      data: { event },
+    });
+
+  } catch (error: any) {
+    logger.error('Admin get event by ID controller error:', {
+      error: error.message,
+      stack: error.stack,
+      adminId: req.user?.userId,
+      eventId: req.params.eventId,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Update event status (Admin/Organizer only)
+ * PATCH /api/v1/admin/events/:eventId/status
+ */
+export const updateEventStatus = async (
+  req: Request<{ eventId: string }, {}, UpdateEventStatusInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { eventId } = req.params;
+    const statusData = req.body;
+
+    logger.info('Admin update event status request:', {
+      adminId: req.user?.userId,
+      eventId,
+      newStatus: statusData.status,
+    });
+
+    // Update event status
+    const updatedEvent = await organizerService.updateEventStatus(eventId, statusData);
+
+    logger.info('Admin update event status successful:', {
+      adminId: req.user?.userId,
+      eventId,
+      newStatus: statusData.status,
+    });
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: `Event status updated to ${statusData.status} successfully`,
+      data: { event: updatedEvent },
+    });
+
+  } catch (error: any) {
+    logger.error('Admin update event status controller error:', {
+      error: error.message,
+      stack: error.stack,
+      adminId: req.user?.userId,
+      eventId: req.params.eventId,
+      statusData: req.body,
     });
 
     // Pass the error to the error handler middleware
