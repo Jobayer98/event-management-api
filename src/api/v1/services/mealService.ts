@@ -1,4 +1,4 @@
-import { mealRepository, CreateMealData, UpdateMealData, MealResponse, MealListResponse, MealFilters } from '../repositories/mealRepository';
+import { mealRepository, CreateMealData, UpdateMealData, MealResponse, MealListResponse, AdminMealListResponse, MealFilters } from '../repositories/mealRepository';
 import { createError } from '../../../middleware/errorHandler';
 import { logger } from '../../../config';
 
@@ -18,6 +18,18 @@ export interface UpdateMealInput {
 
 export interface MealListResult {
   meals: MealListResponse[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+export interface AdminMealListResult {
+  meals: AdminMealListResponse[];
   pagination: {
     page: number;
     limit: number;
@@ -188,7 +200,7 @@ export class MealService {
   }
 
   /**
-   * Get meals with pagination and filters
+   * Get meals with pagination and filters (User - basic info only)
    */
   async getMeals(
     page: number = 1,
@@ -222,6 +234,51 @@ export class MealService {
 
     } catch (error: any) {
       logger.error('Meal listing error:', {
+        error: error.message,
+        page,
+        limit,
+        filters,
+      });
+
+      throw createError('Unable to retrieve meals at this time. Please try again later.', 500);
+    }
+  }
+
+  /**
+   * Get meals with pagination and filters (Admin - detailed info)
+   */
+  async getAdminMeals(
+    page: number = 1,
+    limit: number = 10,
+    filters: MealFilters = {}
+  ): Promise<AdminMealListResult> {
+    logger.info(`Admin fetching meals - page: ${page}, limit: ${limit}`, { filters });
+
+    try {
+      const skip = (page - 1) * limit;
+
+      // Get meals and total count
+      const [meals, total] = await Promise.all([
+        mealRepository.findManyAdmin(skip, limit, filters),
+        mealRepository.count(filters),
+      ]);
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        meals,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      };
+
+    } catch (error: any) {
+      logger.error('Admin meal listing error:', {
         error: error.message,
         page,
         limit,

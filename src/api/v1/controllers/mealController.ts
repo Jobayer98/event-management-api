@@ -155,7 +155,7 @@ export const deleteMeal = async (
 };
 
 /**
- * Get meals with pagination and filters
+ * Get meals with pagination and filters (User - basic info only)
  * GET /api/v1/meals
  */
 export const getMeals = async (
@@ -189,7 +189,7 @@ export const getMeals = async (
       ...(maxPrice && { maxPrice }),
     };
 
-    // Call the meal service to get meals
+    // Call the meal service to get meals (user version - basic info only)
     const result = await mealService.getMeals(page, limit, filters);
 
     // Return success response
@@ -204,6 +204,66 @@ export const getMeals = async (
 
   } catch (error: any) {
     logger.error('Get meals controller error:', {
+      error: error.message,
+      stack: error.stack,
+      query: req.query,
+    });
+
+    // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+/**
+ * Get meals with pagination and filters (Admin - detailed info)
+ * GET /api/v1/admin/meals
+ */
+export const getAdminMeals = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const query = req.query as any;
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const type = query.type;
+    const search = query.search;
+    const minPrice = query.minPrice ? parseFloat(query.minPrice) : undefined;
+    const maxPrice = query.maxPrice ? parseFloat(query.maxPrice) : undefined;
+
+    logger.info(`Admin fetching meals with filters`, {
+      page,
+      limit,
+      type,
+      search,
+      minPrice,
+      maxPrice
+    });
+
+    // Prepare filters
+    const filters = {
+      ...(type && { type }),
+      ...(search && { search }),
+      ...(minPrice && { minPrice }),
+      ...(maxPrice && { maxPrice }),
+    };
+
+    // Call the meal service to get admin meals (detailed info)
+    const result = await mealService.getAdminMeals(page, limit, filters);
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Meals retrieved successfully',
+      data: {
+        meals: result.meals,
+        pagination: result.pagination,
+      },
+    });
+
+  } catch (error: any) {
+    logger.error('Get admin meals controller error:', {
       error: error.message,
       stack: error.stack,
       query: req.query,

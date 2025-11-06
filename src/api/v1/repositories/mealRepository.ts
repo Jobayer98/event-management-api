@@ -67,6 +67,17 @@ export interface MealListResponse {
   name: string;
 }
 
+export interface AdminMealListResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  price_per_person: number;
+  minimum_guests: number;
+  serving_style: string;
+  meal_type: string;
+  cuisine: string | null;
+}
+
 export interface MealDetailResponse {
   id: string;
   name: string;
@@ -150,7 +161,7 @@ export class MealRepository {
   }
 
   /**
-   * Get meals with pagination and filters (list view - essential data only)
+   * Get meals with pagination and filters (list view - essential data only for users)
    */
   async findMany(
     skip: number = 0,
@@ -199,6 +210,74 @@ export class MealRepository {
     });
 
     return meals;
+  }
+
+  /**
+   * Get meals with pagination and filters (admin view - detailed data)
+   */
+  async findManyAdmin(
+    skip: number = 0,
+    take: number = 10,
+    filters: MealFilters = {}
+  ): Promise<AdminMealListResponse[]> {
+    const { search, type, minPrice, maxPrice } = filters;
+
+    const whereClause: any = {};
+
+    // Search filter (name or description)
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Type filter
+    if (type) {
+      whereClause.type = type;
+    }
+
+    // Price filters
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      whereClause.pricePerPerson = {};
+      if (minPrice !== undefined) {
+        whereClause.pricePerPerson.gte = minPrice;
+      }
+      if (maxPrice !== undefined) {
+        whereClause.pricePerPerson.lte = maxPrice;
+      }
+    }
+
+    const meals = await prisma.meal.findMany({
+      where: whereClause,
+      skip,
+      take,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        pricePerPerson: true,
+        minimumGuests: true,
+        servingStyle: true,
+        type: true,
+        cuisine: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    // Transform the response to match the expected format with snake_case
+    return meals.map(meal => ({
+      id: meal.id,
+      name: meal.name,
+      description: meal.description,
+      price_per_person: Number(meal.pricePerPerson),
+      minimum_guests: meal.minimumGuests,
+      serving_style: meal.servingStyle,
+      meal_type: meal.type,
+      cuisine: meal.cuisine,
+    }));
   }
 
   /**
