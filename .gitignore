@@ -1,8 +1,18 @@
 node_modules/
-.kiro
-.env*
-.DS_Store
-.idea/
-.vscode/
-build/
 dist/
+logs/
+.kiro
+.env
+.env.local
+.env.production
+*.log
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.d.ts
+*.d.ts.map
+*.d.js
+*.d.js.map
+*.js.map
+!src/**/*.d.ts
