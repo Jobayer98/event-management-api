@@ -1579,4 +1579,239 @@
  *         - success
  *         - message
  *         - transactionId
+ *//**
+ *
+ @swagger
+ * components:
+ *   schemas:
+ *     # Analytics Schemas
+ *     DashboardStats:
+ *       type: object
+ *       properties:
+ *         totalEvents:
+ *           type: integer
+ *           example: 1250
+ *           description: "Total number of events"
+ *         totalRevenue:
+ *           type: number
+ *           format: decimal
+ *           example: 2875000.50
+ *           description: "Total revenue generated"
+ *         averageEventValue:
+ *           type: number
+ *           format: decimal
+ *           example: 2300.00
+ *           description: "Average value per event"
+ *         totalUsers:
+ *           type: integer
+ *           example: 850
+ *           description: "Total number of registered users"
+ *         totalVenues:
+ *           type: integer
+ *           example: 45
+ *           description: "Total number of venues"
+ *         totalMeals:
+ *           type: integer
+ *           example: 120
+ *           description: "Total number of meal packages"
+ *         recentEvents:
+ *           type: integer
+ *           example: 75
+ *           description: "Number of events in the last 30 days"
+ *         pendingEvents:
+ *           type: integer
+ *           example: 25
+ *           description: "Number of pending events"
+ *         confirmedEvents:
+ *           type: integer
+ *           example: 980
+ *           description: "Number of confirmed events"
+ *         cancelledEvents:
+ *           type: integer
+ *           example: 245
+ *           description: "Number of cancelled events"
+ *       required:
+ *         - totalEvents
+ *         - totalRevenue
+ *         - averageEventValue
+ *         - totalUsers
+ *         - totalVenues
+ *         - totalMeals
+ *         - recentEvents
+ *         - pendingEvents
+ *         - confirmedEvents
+ *         - cancelledEvents
+ *
+ *     RevenueAnalytics:
+ *       type: object
+ *       properties:
+ *         period:
+ *           type: string
+ *           example: "2024-03"
+ *           description: "Time period (format depends on groupBy parameter)"
+ *         totalRevenue:
+ *           type: number
+ *           format: decimal
+ *           example: 125000.50
+ *           description: "Total revenue for the period"
+ *         eventCount:
+ *           type: integer
+ *           example: 45
+ *           description: "Number of events in the period"
+ *         averageEventValue:
+ *           type: number
+ *           format: decimal
+ *           example: 2777.78
+ *           description: "Average revenue per event"
+ *       required:
+ *         - period
+ *         - totalRevenue
+ *         - eventCount
+ *         - averageEventValue
+ *
+ *     TopVenue:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "456e7890-e89b-12d3-a456-426614174001"
+ *           description: "Venue ID"
+ *         name:
+ *           type: string
+ *           example: "Grand Ballroom"
+ *           description: "Venue name"
+ *         eventCount:
+ *           type: integer
+ *           example: 85
+ *           description: "Number of events hosted"
+ *         totalRevenue:
+ *           type: number
+ *           format: decimal
+ *           example: 425000.00
+ *           description: "Total revenue generated"
+ *         averageEventValue:
+ *           type: number
+ *           format: decimal
+ *           example: 5000.00
+ *           description: "Average revenue per event"
+ *       required:
+ *         - id
+ *         - name
+ *         - eventCount
+ *         - totalRevenue
+ *         - averageEventValue
+ *
+ *     TopMeal:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "789e0123-e89b-12d3-a456-426614174002"
+ *           description: "Meal ID"
+ *         name:
+ *           type: string
+ *           example: "Premium Wedding Buffet"
+ *           description: "Meal name"
+ *         orderCount:
+ *           type: integer
+ *           example: 65
+ *           description: "Number of times ordered"
+ *         totalRevenue:
+ *           type: number
+ *           format: decimal
+ *           example: 195000.00
+ *           description: "Total revenue generated"
+ *         averageOrderValue:
+ *           type: number
+ *           format: decimal
+ *           example: 3000.00
+ *           description: "Average revenue per order"
+ *       required:
+ *         - id
+ *         - name
+ *         - orderCount
+ *         - totalRevenue
+ *         - averageOrderValue
+ *
+ *     EventTypeAnalytics:
+ *       type: object
+ *       properties:
+ *         eventType:
+ *           type: string
+ *           example: "Wedding Reception"
+ *           description: "Type of event"
+ *         count:
+ *           type: integer
+ *           example: 320
+ *           description: "Number of events of this type"
+ *         totalRevenue:
+ *           type: number
+ *           format: decimal
+ *           example: 1280000.00
+ *           description: "Total revenue from this event type"
+ *         averageValue:
+ *           type: number
+ *           format: decimal
+ *           example: 4000.00
+ *           description: "Average revenue per event of this type"
+ *         percentage:
+ *           type: number
+ *           format: decimal
+ *           example: 25.6
+ *           description: "Percentage of total events"
+ *       required:
+ *         - eventType
+ *         - count
+ *         - totalRevenue
+ *         - averageValue
+ *         - percentage
+ *
+ *   tags:
+ *     - name: Admin Analytics
+ *       description: Analytics and reporting endpoints for administrators
+ *
+ *   responses:
+ *     BadRequest:
+ *       description: Bad request - Invalid input parameters
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               success:
+ *                 type: boolean
+ *                 example: false
+ *               message:
+ *                 type: string
+ *                 example: "Invalid request parameters"
+ *               errors:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/ValidationError'
+ *             required:
+ *               - success
+ *               - message
+ *
+ *     Unauthorized:
+ *       description: Unauthorized - Authentication required
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UnauthorizedError'
+ *
+ *     Forbidden:
+ *       description: Forbidden - Insufficient permissions
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ForbiddenError'
+ *
+ *     InternalServerError:
+ *       description: Internal server error
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/InternalServerError'
  */
