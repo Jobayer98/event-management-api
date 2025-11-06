@@ -33,7 +33,8 @@ RUN npm ci --silent
 # Copy source code
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma client with a dummy DATABASE_URL for build
+ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
 RUN npx prisma generate
 
 # Build the application
@@ -50,6 +51,9 @@ COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nodejs:nodejs /app/package*.json ./
 COPY --from=build --chown=nodejs:nodejs /app/prisma ./prisma
+
+# Change ownership of the entire /app directory to nodejs user
+RUN chown -R nodejs:nodejs /app
 
 # Switch to non-root user
 USER nodejs

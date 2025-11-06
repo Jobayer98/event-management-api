@@ -31,6 +31,9 @@ Thumbs.db
 logs
 *.log
 
+# Nginx (keep config, exclude logs)
+nginx/logs
+
 # Testing
 coverage
 .nyc_output
