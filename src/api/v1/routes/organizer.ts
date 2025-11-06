@@ -402,7 +402,6 @@ router.put('/password', authenticateToken, requireRole(['organizer', 'admin']), 
 router.get('/events',
     authenticateToken,
     requireRole(['organizer', 'admin']),
-    validateQuery(adminEventQuerySchema),
     getAllEvents
 );
 

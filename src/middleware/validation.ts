@@ -56,7 +56,9 @@ export const validateBody = (schema: ZodSchema) => {
 export const validateQuery = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
+      logger.info('Query validation input:', { query: req.query });
       const validatedData = schema.parse(req.query);
+      logger.info('Query validation success:', { validatedData });
       req.query = validatedData as any;
       next();
     } catch (error) {
@@ -65,6 +67,11 @@ export const validateQuery = (schema: ZodSchema) => {
           field: issue.path.join('.'),
           message: issue.message,
         }));
+
+        logger.warn('Zod validation failed:', {
+          query: req.query,
+          errors: validationErrors
+        });
 
         res.status(400).json({
           success: false,
@@ -75,6 +82,12 @@ export const validateQuery = (schema: ZodSchema) => {
         });
         return;
       }
+
+      logger.error('Non-Zod validation error:', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        query: req.query
+      });
 
       res.status(500).json({
         success: false,
