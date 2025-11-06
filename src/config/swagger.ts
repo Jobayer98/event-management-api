@@ -500,6 +500,205 @@ const swaggerDefinition: SwaggerDefinition = {
         },
         required: ['id', 'name', 'type', 'servingStyle', 'pricePerPerson', 'createdAt', 'updatedAt']
       },
+      Event: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            format: 'uuid',
+            example: '123e4567-e89b-12d3-a456-426614174000'
+          },
+          userId: {
+            type: 'string',
+            format: 'uuid',
+            example: '456e7890-e89b-12d3-a456-426614174001'
+          },
+          venueId: {
+            type: 'string',
+            format: 'uuid',
+            example: '789e0123-e89b-12d3-a456-426614174002'
+          },
+          mealId: {
+            type: 'string',
+            format: 'uuid',
+            nullable: true,
+            example: '012e3456-e89b-12d3-a456-426614174003'
+          },
+          eventType: {
+            type: 'string',
+            example: 'Wedding Reception'
+          },
+          peopleCount: {
+            type: 'integer',
+            example: 150
+          },
+          startTime: {
+            type: 'string',
+            format: 'date-time',
+            example: '2024-12-25T10:00:00.000Z'
+          },
+          endTime: {
+            type: 'string',
+            format: 'date-time',
+            example: '2024-12-25T18:00:00.000Z'
+          },
+          totalCost: {
+            type: 'number',
+            nullable: true,
+            example: 15750.50
+          },
+          status: {
+            type: 'string',
+            enum: ['pending', 'confirmed', 'cancelled'],
+            example: 'confirmed'
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            example: '2024-01-15T10:30:00Z'
+          },
+          venue: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid'
+              },
+              name: {
+                type: 'string',
+                example: 'Grand Ballroom'
+              },
+              address: {
+                type: 'string',
+                nullable: true,
+                example: '123 Main Street, Downtown'
+              },
+              capacity: {
+                type: 'integer',
+                nullable: true,
+                example: 200
+              },
+              pricePerDay: {
+                type: 'number',
+                example: 5000.00
+              }
+            },
+            required: ['id', 'name', 'pricePerDay']
+          },
+          meal: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid'
+              },
+              name: {
+                type: 'string',
+                example: 'Premium Buffet'
+              },
+              type: {
+                type: 'string',
+                nullable: true,
+                example: 'buffet'
+              },
+              pricePerPerson: {
+                type: 'number',
+                example: 45.00
+              }
+            },
+            required: ['id', 'name', 'pricePerPerson']
+          }
+        },
+        required: ['id', 'userId', 'venueId', 'eventType', 'peopleCount', 'startTime', 'endTime', 'status', 'createdAt', 'venue']
+      },
+      EventListResponse: {
+        type: 'object',
+        properties: {
+          success: {
+            type: 'boolean',
+            example: true
+          },
+          message: {
+            type: 'string',
+            example: 'Events retrieved successfully'
+          },
+          data: {
+            type: 'object',
+            properties: {
+              events: {
+                type: 'array',
+                items: {
+                  $ref: '#/components/schemas/Event'
+                }
+              },
+              pagination: {
+                type: 'object',
+                properties: {
+                  currentPage: {
+                    type: 'integer',
+                    example: 1
+                  },
+                  totalPages: {
+                    type: 'integer',
+                    example: 5
+                  },
+                  totalEvents: {
+                    type: 'integer',
+                    example: 47
+                  },
+                  hasNextPage: {
+                    type: 'boolean',
+                    example: true
+                  },
+                  hasPreviousPage: {
+                    type: 'boolean',
+                    example: false
+                  }
+                },
+                required: ['currentPage', 'totalPages', 'totalEvents', 'hasNextPage', 'hasPreviousPage']
+              }
+            },
+            required: ['events', 'pagination']
+          }
+        },
+        required: ['success', 'message', 'data']
+      },
+      EventResponse: {
+        type: 'object',
+        properties: {
+          success: {
+            type: 'boolean',
+            example: true
+          },
+          message: {
+            type: 'string',
+            example: 'Event retrieved successfully'
+          },
+          data: {
+            type: 'object',
+            properties: {
+              event: {
+                $ref: '#/components/schemas/Event'
+              }
+            },
+            required: ['event']
+          }
+        },
+        required: ['success', 'message', 'data']
+      },
+      UpdateEventStatusRequest: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['pending', 'confirmed', 'cancelled'],
+            example: 'confirmed',
+            description: 'New status for the event'
+          }
+        },
+        required: ['status']
+      },
       Pagination: {
         type: 'object',
         properties: {
@@ -544,6 +743,10 @@ const swaggerDefinition: SwaggerDefinition = {
     {
       name: 'Admin',
       description: 'Admin authentication and profile management endpoints'
+    },
+    {
+      name: 'Admin Events',
+      description: 'Admin/Organizer event management endpoints for viewing and updating event status'
     }
   ]
 };

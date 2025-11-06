@@ -161,3 +161,46 @@ export const eventQuerySchema = z.object({
 });
 
 export type EventQueryInput = z.infer<typeof eventQuerySchema>;
+
+// Admin event status update schema
+export const updateEventStatusSchema = z.object({
+  status: z
+    .enum(['pending', 'confirmed', 'cancelled'], {
+      message: 'Status must be one of: pending, confirmed, cancelled'
+    })
+});
+
+export type UpdateEventStatusInput = z.infer<typeof updateEventStatusSchema>;
+
+// Admin event query schema for listing all events
+export const adminEventQuerySchema = z.object({
+  page: z
+    .string()
+    .regex(/^\d+$/, 'Page must be a number')
+    .transform(Number)
+    .refine(val => val >= 1, 'Page must be at least 1')
+    .optional()
+    .or(z.undefined())
+    .default(1),
+
+  limit: z
+    .string()
+    .regex(/^\d+$/, 'Limit must be a number')
+    .transform(Number)
+    .refine(val => val >= 1 && val <= 100, 'Limit must be between 1 and 100')
+    .optional()
+    .or(z.undefined())
+    .default(10),
+
+  status: z
+    .enum(['pending', 'confirmed', 'cancelled'])
+    .optional(),
+
+  eventType: z
+    .string()
+    .max(100, 'Event type must not exceed 100 characters')
+    .trim()
+    .optional()
+});
+
+export type AdminEventQueryInput = z.infer<typeof adminEventQuerySchema>;
