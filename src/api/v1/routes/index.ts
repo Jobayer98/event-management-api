@@ -9,6 +9,7 @@ import adminMealRoutes from './adminMeals';
 import adminVenueRoutes from './adminVenues';
 import adminEventRoutes from './adminEvents';
 import adminAnalyticsRoutes from './adminAnalytics';
+import uploadRoutes from './upload';
 
 const router = Router();
 
@@ -32,5 +33,8 @@ router.use('/meals', mealRoutes);
 router.use('/events', eventRoutes);
 
 router.use('/payments', paymentRoutes);
+
+// Upload routes
+router.use('/upload', uploadRoutes);
 
 export default router;
