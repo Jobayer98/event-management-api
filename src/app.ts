@@ -46,9 +46,23 @@ class App {
     // Request logging middleware
     this.app.use(requestLogger);
 
-    // Body parsing middleware
-    this.app.use(express.json({ limit: '10mb' }));
-    this.app.use(express.urlencoded({ extended: true }));
+    // Body parsing middleware - skip only for file upload routes (single/multiple)
+    this.app.use((req, res, next) => {
+      if (req.path === '/api/v1/upload/single' ||
+        req.path === '/api/v1/upload/multiple' ||
+        req.path === '/api/v1/upload/test') {
+        return next();
+      }
+      express.json({ limit: '10mb' })(req, res, next);
+    });
+    this.app.use((req, res, next) => {
+      if (req.path === '/api/v1/upload/single' ||
+        req.path === '/api/v1/upload/multiple' ||
+        req.path === '/api/v1/upload/test') {
+        return next();
+      }
+      express.urlencoded({ extended: true })(req, res, next);
+    });
 
     // Basic security headers
     this.app.use((_req, res, next) => {
@@ -69,7 +83,10 @@ class App {
       customSiteTitle: 'Event Management API Documentation',
       swaggerOptions: {
         requestInterceptor: (req: any) => {
-          req.headers['Content-Type'] = 'application/json';
+          // Don't override Content-Type for multipart/form-data requests (file uploads)
+          if (!req.url.includes('/upload')) {
+            req.headers['Content-Type'] = 'application/json';
+          }
           return req;
         }
       }
