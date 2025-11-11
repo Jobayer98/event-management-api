@@ -11,6 +11,7 @@ import {
     updateAdminProfileSchema,
     updateAdminPasswordSchema
 } from '../../../schemas/auth';
+import { authLimiter } from '../../../middleware/rateLimiter';
 
 const router = Router();
 
@@ -81,7 +82,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/login', validateBody(loginOrganizerSchema), loginAdmin);
+router.post('/login', authLimiter, validateBody(loginOrganizerSchema), loginAdmin);
 
 /**
  * @swagger

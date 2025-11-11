@@ -25,15 +25,6 @@ A comprehensive event management system built with Node.js, TypeScript, Express,
 - **Request Logging**: Winston-based logging with request/response tracking
 - **Health Checks**: Database connectivity and system health monitoring
 
-### Monitoring & Logging
-- **Winston Logger**: Enterprise-grade logging with multiple transports
-- **Daily Log Rotation**: Automatic log file rotation with configurable retention
-- **Structured Logging**: JSON-formatted logs for easy parsing and analysis
-- **Performance Tracking**: Automatic slow request detection and monitoring
-- **System Metrics**: CPU, memory, and uptime monitoring
-- **Request Statistics**: Track total requests, errors, and endpoint usage
-- **Health Monitoring**: Comprehensive health check endpoint with metrics
-
 ### Event Management
 - **Event Status Management**: Admins/organizers can update event status (pending, confirmed, cancelled)
 - **Event Listing**: Comprehensive event listing with pagination and filtering
@@ -47,9 +38,10 @@ A comprehensive event management system built with Node.js, TypeScript, Express,
 - **Database**: PostgreSQL
 - **ORM**: Prisma
 - **Authentication**: JWT (JSON Web Tokens)
+- **Security**: Helmet.js, express-rate-limit
 - **Validation**: Zod
 - **Password Hashing**: bcryptjs
-- **Logging**: Winston
+- **Logging**: Winston with winston-daily-rotate-file
 - **Development**: nodemon, ts-node, concurrently
 
 ## Database Schema
@@ -255,17 +247,41 @@ When the application starts for the first time, it automatically creates a defau
 
 You can customize these credentials using environment variables.
 
-## Security Features
+### Authentication & Authorization
+- **Password Hashing**: bcrypt with 12 rounds for secure password storage
+- **JWT Tokens**: Secure token-based authentication with role-based access control
+- **Automatic Token Expiration**: Configurable token lifetime (default: 7 days)
+- **Password Reset**: Secure token-based password reset with expiration
 
-- **Password Hashing**: bcrypt with 12 rounds
-- **JWT Tokens**: Secure authentication with role-based access
-- **Input Validation**: Comprehensive request validation with Zod
+### Security Headers (Helmet.js)
+- **Content Security Policy (CSP)**: Prevents XSS attacks
+- **HTTP Strict Transport Security (HSTS)**: Forces HTTPS connections
+- **X-Frame-Options**: Prevents clickjacking attacks
+- **X-Content-Type-Options**: Prevents MIME type sniffing
+- **X-XSS-Protection**: Additional XSS protection layer
+
+### Rate Limiting
+Protection against brute force attacks and API abuse:
+
+| Endpoint Type | Limit | Window | Description |
+|--------------|-------|--------|-------------|
+| General API | 100 requests | 15 minutes | All API endpoints |
+| Authentication | 5 attempts | 15 minutes | Login/Register endpoints |
+| Password Reset | 3 attempts | 1 hour | Password reset requests |
+| File Upload | 20 uploads | 15 minutes | Image upload endpoints |
+
+Rate limit headers are included in responses:
+- `RateLimit-Limit`: Maximum requests allowed
+- `RateLimit-Remaining`: Requests remaining
+- `RateLimit-Reset`: Time when limit resets
+
+### Additional Security
+- **CORS Protection**: Configurable cross-origin resource sharing
+- **Input Validation**: Zod schemas validate all incoming requests
 - **SQL Injection Protection**: Prisma ORM with parameterized queries
-- **Rate Limiting Ready**: Architecture supports rate limiting middleware
-- **Security Headers**: Basic security headers configured
-- **Environment Variables**: Sensitive data stored in environment variables
-
-## Monitoring & Logging
+- **Request Size Limits**: 10MB limit on JSON payloads
+- **Proxy Trust**: Configured for deployment behind reverse proxies
+- **Environment Variables**: All sensitive data stored securely
 
 The application uses Winston for comprehensive logging with advanced monitoring capabilities:
 
