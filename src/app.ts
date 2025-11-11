@@ -65,7 +65,7 @@ class App {
       optionsSuccessStatus: 200
     };
 
-    this.app.use(cors(corsOptions));
+    this.app.use(cors());
 
     // Trust proxy (for rate limiting behind reverse proxy)
     this.app.set('trust proxy', 1);
