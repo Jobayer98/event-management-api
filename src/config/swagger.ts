@@ -18,11 +18,11 @@ const swaggerDefinition: SwaggerDefinition = {
   },
   servers: [
     {
-      url: process.env.API_BASE_URL || 'http://localhost:80',
+      url: process.env.API_BASE_URL || 'http://localhost',
       description: 'Development server'
     },
     {
-      url: 'https://api.eventmanagement.com',
+      url: 'http://54.151.167.179',
       description: 'Production server'
     }
   ],
