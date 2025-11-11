@@ -1,5 +1,7 @@
+import { organizerRepository } from './api/v1/repositories/organizerRepository';
 import app from './app';
 import { logger, DatabaseConnection } from './config';
+import { hashPassword } from './utils/auth';
 
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -12,8 +14,26 @@ async function startServer(): Promise<void> {
         await DatabaseConnection.connect();
         logger.info('Database connection established');
 
+        // Create admin user if not exists (before starting server)
+        const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@admin.com";
+        const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin123!@";
+        const ADMIN_NAME = process.env.ADMIN_NAME || "System Administrator";
+
+        const existingAdmin = await organizerRepository.findByEmail(ADMIN_EMAIL);
+        if (!existingAdmin) {
+            const passwordHash = await hashPassword(ADMIN_PASSWORD);
+            await organizerRepository.create({
+                email: ADMIN_EMAIL,
+                passwordHash,
+                name: ADMIN_NAME
+            });
+            logger.info('Admin user created successfully');
+        } else {
+            logger.info('Admin user already exists');
+        }
+
         // Start Express server
-        const server = app.listen(PORT, 'localhost', () => {
+        const server = app.listen(PORT, '0.0.0.0', () => {
             logger.info(`Server running on port ${PORT}`);
             logger.info(`Health check: http://localhost:${PORT}/api/health`);
             logger.info(`Swagger docs: http://localhost:${PORT}/api-docs`);
@@ -25,11 +45,6 @@ async function startServer(): Promise<void> {
             logger.error('Server error:', error);
             process.exit(1);
         });
-
-        // Keep the process alive with heartbeat
-        // setInterval(() => {
-        //     logger.debug(`Server heartbeat - ${new Date().toISOString()}`);
-        // }, 60000); // Log every minute
 
         // Graceful shutdown
         process.on('SIGTERM', async () => {

@@ -269,7 +269,7 @@ The application uses Winston for comprehensive logging:
 
 ### Interactive Documentation
 The API includes comprehensive Swagger/OpenAPI documentation available at:
-- **Development**: `http://localhost:8080/api-docs`
+- **Development**: `http://localhost:80/api-docs`
 - **Production**: `https://api.eventmanagement.com/api-docs`
 
 ### Documentation Features
