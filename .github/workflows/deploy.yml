@@ -67,15 +67,14 @@ jobs:
         run: |
           # Setup SSH
           mkdir -p ~/.ssh
-          printf "%s" "$EC2_SSH_KEY" > ~/.ssh/deploy_key
+          echo "$EC2_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           
-          # Verify key format
-          echo "Checking SSH key format..."
-          head -n 1 ~/.ssh/deploy_key
+          # Verify key exists and has content
+          echo "Key file size: $(wc -c < ~/.ssh/deploy_key) bytes"
           
           # Add host to known_hosts
-          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts 2>/dev/null
           
           # Test SSH connection
           echo "Testing SSH connection to $EC2_USER@$EC2_HOST..."
