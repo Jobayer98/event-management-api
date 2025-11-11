@@ -38,7 +38,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.post('/single', upload.single('image'), authenticateToken, requireRole(['admin']), uploadSingleImage);
+router.post('/single', upload.single('image'), authenticateToken, requireRole(['organizer', 'admin']), uploadSingleImage);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.post('/single', upload.single('image'), authenticateToken, requireRole(['
  *       500:
  *         description: Server error
  */
-router.post('/multiple', upload.array('images', 10), authenticateToken, requireRole(['admin']), uploadMultipleImages);
+router.post('/multiple', upload.array('images', 10), authenticateToken, requireRole(['organizer', 'admin']), uploadMultipleImages);
 
 /**
  * @swagger
@@ -93,7 +93,7 @@ router.post('/multiple', upload.array('images', 10), authenticateToken, requireR
  *       500:
  *         description: Server error
  */
-router.get('/list', authenticateToken, requireRole(['admin']), listImages);
+router.get('/list', authenticateToken, requireRole(['organizer', 'admin']), listImages);
 
 /**
  * @swagger
@@ -121,6 +121,6 @@ router.get('/list', authenticateToken, requireRole(['admin']), listImages);
  *       500:
  *         description: Server error
  */
-router.delete('/delete', authenticateToken, requireRole(['admin']), deleteImage);
+router.delete('/delete', authenticateToken, requireRole(['organizer', 'admin']), deleteImage);
 
 export default router;

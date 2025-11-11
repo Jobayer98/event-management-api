@@ -18,7 +18,7 @@ const swaggerDefinition: SwaggerDefinition = {
   },
   servers: [
     {
-      url: process.env.API_BASE_URL || 'http://localhost:8080',
+      url: process.env.API_BASE_URL || 'http://localhost:80',
       description: 'Development server'
     },
     {
@@ -765,12 +765,19 @@ const swaggerDefinition: SwaggerDefinition = {
 
 const options = {
   definition: swaggerDefinition,
-  apis: [
-    './src/api/v1/routes/*.ts',
-    './src/api/v1/controllers/*.ts',
-    './src/schemas/*.ts',
-    './src/docs/*.ts'
-  ]
+  apis: process.env.NODE_ENV === 'production'
+    ? [
+      './dist/api/v1/routes/*.js',
+      './dist/api/v1/controllers/*.js',
+      './dist/schemas/*.js',
+      './dist/docs/*.js'
+    ]
+    : [
+      './src/api/v1/routes/*.ts',
+      './src/api/v1/controllers/*.ts',
+      './src/schemas/*.ts',
+      './src/docs/*.ts'
+    ]
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
