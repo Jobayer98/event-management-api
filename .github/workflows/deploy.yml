@@ -85,8 +85,15 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
             set -e
             
+            # Clone or update repository
+            if [ ! -d "/home/$USER/event-management" ]; then
+              echo "Cloning repository..."
+              cd /home/$USER
+              git clone https://github.com/Jobayer98/event-management-api.git
+            fi
+            
             # Navigate to application directory
-            cd /home/$USER/event-management || exit 1
+            cd /home/$USER/event-management
             
             # Pull latest changes
             git pull origin main
