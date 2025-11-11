@@ -86,14 +86,14 @@ jobs:
             set -e
             
             # Clone or update repository
-            if [ ! -d "/home/$USER/event-management" ]; then
+            if [ ! -d "/home/$USER/event-management-api" ]; then
               echo "Cloning repository..."
               cd /home/$USER
               git clone https://github.com/Jobayer98/event-management-api.git
             fi
             
             # Navigate to application directory
-            cd /home/$USER/event-management
+            cd /home/$USER/event-management-api
             
             # Pull latest changes
             git pull origin main
