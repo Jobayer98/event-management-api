@@ -2,6 +2,7 @@ import { organizerRepository } from './api/v1/repositories/organizerRepository';
 import app from './app';
 import { logger, DatabaseConnection } from './config';
 import { hashPassword } from './utils/auth';
+import { startMetricsLogging, startStatsLogging, getSystemMetrics } from './utils/monitoring';
 
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -38,7 +39,16 @@ async function startServer(): Promise<void> {
             logger.info(`Health check: http://localhost:${PORT}/api/health`);
             logger.info(`Swagger docs: http://localhost:${PORT}/api-docs`);
             logger.info('Server is ready to accept connections');
+
+            // Log initial system metrics
+            const metrics = getSystemMetrics();
+            logger.info('Initial system state', metrics);
         });
+
+        // Start monitoring (log metrics every 15 minutes, stats every 30 minutes)
+        startMetricsLogging(15);
+        startStatsLogging(30);
+        logger.info('Monitoring services started');
 
         // Add error handler for server
         server.on('error', (error: any) => {
@@ -47,26 +57,48 @@ async function startServer(): Promise<void> {
         });
 
         // Graceful shutdown
-        process.on('SIGTERM', async () => {
-            logger.info('SIGTERM received, shutting down gracefully...');
-            server.close(async () => {
-                await DatabaseConnection.disconnect();
-                logger.info('Server shutdown complete');
-                process.exit(0);
-            });
-        });
+        const gracefulShutdown = async (signal: string) => {
+            logger.info(`${signal} received, shutting down gracefully...`);
 
-        process.on('SIGINT', async () => {
-            logger.info('SIGINT received, shutting down gracefully...');
+        // Stop accepting new connections
             server.close(async () => {
+                logger.info('HTTP server closed');
+
+                // Disconnect from database
                 await DatabaseConnection.disconnect();
+                logger.info('Database connection closed');
+
+                // Log final metrics
+                const finalMetrics = getSystemMetrics();
+                logger.info('Final system state', finalMetrics);
+
                 logger.info('Server shutdown complete');
                 process.exit(0);
             });
-        });
+
+            // Force shutdown after 30 seconds
+            setTimeout(() => {
+                logger.error('Forced shutdown after timeout');
+                process.exit(1);
+            }, 30000);
+        };
+
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
         process.on('exit', (code) => {
             logger.info(`Process exiting with code: ${code}`);
+        });
+
+        // Handle uncaught exceptions
+        process.on('uncaughtException', (error) => {
+            logger.error('Uncaught Exception:', error);
+            gracefulShutdown('uncaughtException');
+        });
+
+        // Handle unhandled promise rejections
+        process.on('unhandledRejection', (reason, promise) => {
+            logger.error('Unhandled Rejection at:', { promise, reason });
         });
 
         logger.info('Server startup complete, entering event loop...');

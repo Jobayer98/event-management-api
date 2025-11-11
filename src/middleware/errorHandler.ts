@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from '../config/logger';
+import { logError } from '../config/logger';
+import { RequestTracker } from '../utils/monitoring';
 
 export interface ApiError extends Error {
   statusCode?: number;
@@ -15,14 +16,19 @@ export const errorHandler = (
   const statusCode = error.statusCode || 500;
   const message = error.message || 'Internal Server Error';
 
-  // Log error with Winston
-  logger.error(`${req.method} ${req.url} - ${statusCode} - ${message}`, {
-    error: error.message,
-    stack: error.stack,
+  // Track error for monitoring
+  RequestTracker.trackRequest(req.path, statusCode);
+
+  // Log error with structured logging
+  logError(`${req.method} ${req.url} - ${statusCode}`, error, {
+    statusCode,
     url: req.url,
     method: req.method,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
+    body: req.body,
+    params: req.params,
+    query: req.query,
   });
 
   res.status(statusCode).json({

@@ -25,6 +25,15 @@ A comprehensive event management system built with Node.js, TypeScript, Express,
 - **Request Logging**: Winston-based logging with request/response tracking
 - **Health Checks**: Database connectivity and system health monitoring
 
+### Monitoring & Logging
+- **Winston Logger**: Enterprise-grade logging with multiple transports
+- **Daily Log Rotation**: Automatic log file rotation with configurable retention
+- **Structured Logging**: JSON-formatted logs for easy parsing and analysis
+- **Performance Tracking**: Automatic slow request detection and monitoring
+- **System Metrics**: CPU, memory, and uptime monitoring
+- **Request Statistics**: Track total requests, errors, and endpoint usage
+- **Health Monitoring**: Comprehensive health check endpoint with metrics
+
 ### Event Management
 - **Event Status Management**: Admins/organizers can update event status (pending, confirmed, cancelled)
 - **Event Listing**: Comprehensive event listing with pagination and filtering
@@ -256,14 +265,46 @@ You can customize these credentials using environment variables.
 - **Security Headers**: Basic security headers configured
 - **Environment Variables**: Sensitive data stored in environment variables
 
-## Logging
+## Monitoring & Logging
 
-The application uses Winston for comprehensive logging:
-- **Request/Response Logging**: All API requests and responses
-- **Error Logging**: Detailed error tracking with stack traces
-- **Security Logging**: Authentication attempts and security events
-- **Database Logging**: Database operations and connection status
-- **File Logging**: Logs stored in `logs/` directory
+The application uses Winston for comprehensive logging with advanced monitoring capabilities:
+
+### Log Files (with Daily Rotation)
+- **Combined Logs**: All application logs (14 days retention)
+- **Error Logs**: Error-level logs only (30 days retention)
+- **HTTP Logs**: Request/response logs (7 days retention)
+- **Exception Logs**: Uncaught exceptions (30 days retention)
+- **Rejection Logs**: Unhandled promise rejections (30 days retention)
+
+### Features
+- **Structured Logging**: JSON-formatted logs for easy parsing
+- **Automatic Rotation**: Daily log rotation with size limits (20MB per file)
+- **Performance Tracking**: Slow request detection (>1000ms)
+- **System Metrics**: Logged every 15 minutes (uptime, memory, CPU)
+- **Request Statistics**: Logged every 30 minutes (total requests, errors)
+- **Health Monitoring**: `/api/health` endpoint with comprehensive metrics
+
+### Helper Functions
+```typescript
+import { logError, logRequest, logAuth, logDatabase, logPerformance } from './config/logger';
+
+// Error logging with context
+logError('Operation failed', error, { userId, operation });
+
+// Request logging
+logRequest('POST', '/api/v1/events', 201, 150);
+
+// Authentication logging
+logAuth('login', userId, true, { ip, userAgent });
+
+// Database operation logging
+logDatabase('SELECT', 'users', duration);
+
+// Performance logging
+logPerformance('heavyOperation', duration);
+```
+
+For detailed monitoring documentation, see [MONITORING.md](./MONITORING.md)
 
 ## API Documentation
 
