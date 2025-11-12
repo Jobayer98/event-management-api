@@ -34,6 +34,7 @@ class App {
           imgSrc: ["'self'", "data:", "https:"],
         },
       },
+      crossOriginOpenerPolicy: false,
       crossOriginEmbedderPolicy: false, // Allow Swagger UI to work
     }));
 
@@ -56,7 +57,7 @@ class App {
       optionsSuccessStatus: 200
     };
 
-    this.app.use(cors());
+    this.app.use(cors(corsOptions));
 
     // Trust proxy (for rate limiting behind reverse proxy)
     this.app.set('trust proxy', 1);
