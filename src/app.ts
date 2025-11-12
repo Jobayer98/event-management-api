@@ -24,19 +24,27 @@ class App {
   }
 
   private initializeMiddlewares(): void {
-    // Helmet security headers
-    this.app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", "data:", "https:"],
+    // Helmet security headers - relaxed for Swagger UI
+    this.app.use((req, res, next) => {
+      // Skip Helmet for Swagger docs to avoid CORS issues
+      if (req.path.startsWith('/api-docs')) {
+        return next();
+      }
+
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+          },
         },
-      },
-      crossOriginOpenerPolicy: false,
-      crossOriginEmbedderPolicy: false, // Allow Swagger UI to work
-    }));
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false,
+        crossOriginResourcePolicy: false,
+      })(req, res, next);
+    });
 
     // CORS configuration
     const corsOptions = {
