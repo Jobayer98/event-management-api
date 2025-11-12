@@ -9,6 +9,7 @@ import { apiLimiter } from './middleware/rateLimiter';
 import v1Routes from './api';
 import logger from './config/logger';
 import { swaggerSpec } from './config/swagger';
+import { metricsMiddleware, metricsHandler } from './config/metrics';
 
 // Load environment variables
 dotenv.config();
@@ -65,6 +66,9 @@ class App {
     // Request logging middleware
     this.app.use(requestLogger);
 
+    // Metrics middleware
+    this.app.use(metricsMiddleware);
+
     // Global rate limiter (applied to all routes)
     this.app.use('/api/', apiLimiter);
 
@@ -90,6 +94,9 @@ class App {
   }
 
   private initializeRoutes(): void {
+    // Metrics endpoint (before rate limiting)
+    this.app.get('/api/metrics', metricsHandler);
+
     // Swagger documentation
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
       explorer: true,
