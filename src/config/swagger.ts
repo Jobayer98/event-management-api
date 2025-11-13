@@ -23,7 +23,7 @@ For detailed endpoint documentation, request/response schemas, and interactive t
   },
   servers: [
     {
-      url: 'http://54.151.167.179',
+      url: 'http://18.141.239.148',
       description: 'Production server'
     },
     {
