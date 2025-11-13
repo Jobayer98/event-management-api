@@ -4,9 +4,14 @@ import { SwaggerDefinition } from 'swagger-jsdoc';
 const swaggerDefinition: SwaggerDefinition = {
   openapi: '3.0.0',
   info: {
-    title: 'Event Management API',
+    title: 'Venue Booking System API',
     version: '1.0.0',
-    description: 'A comprehensive event management system API with authentication, venues, events, and more.',
+    description: `
+
+The Venue Booking System API enables seamless coordination between event organizers and customers, offering robust features for venue booking, meal planning, event scheduling, and payment processing. The system supports role-based access control with separate authentication flows for customers and organizers/administrators.
+
+For detailed endpoint documentation, request/response schemas, and interactive testing, explore the sections below.
+    `,
     contact: {
       name: 'API Support',
       email: 'support@eventmanagement.com'
@@ -18,13 +23,14 @@ const swaggerDefinition: SwaggerDefinition = {
   },
   servers: [
     {
-      url: process.env.API_BASE_URL || 'http://localhost',
-      description: 'Development server'
-    },
-    {
       url: 'http://18.141.239.148',
       description: 'Production server'
+    },
+    {
+      url: process.env.API_BASE_URL || 'http://localhost',
+      description: 'Development server'
     }
+
   ],
   components: {
     securitySchemes: {
@@ -737,7 +743,7 @@ const swaggerDefinition: SwaggerDefinition = {
       description: 'Meal options and catering management endpoints'
     },
     {
-      name: 'User - Venues',
+      name: 'Venues',
       description: 'Book a venue for an event'
     },
     {

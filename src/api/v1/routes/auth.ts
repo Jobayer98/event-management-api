@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { registerUser, loginUser, requestPasswordReset, confirmPasswordReset } from '../controllers/authController';
 import { validateBody } from '../../../middleware/validation';
 import { registerUserSchema, loginUserSchema, resetPasswordRequestSchema, resetPasswordConfirmSchema } from '../../../schemas/auth';
+import { authLimiter, passwordResetLimiter } from '../../../middleware/rateLimiter';
 
 const router = Router();
 
@@ -132,7 +133,7 @@ const router = Router();
  *                   message: "Internal server error"
  *                   error: "An unexpected error occurred"
  */
-router.post('/register', validateBody(registerUserSchema), registerUser);
+router.post('/register', authLimiter, validateBody(registerUserSchema), registerUser);
 
 /**
  * @swagger
@@ -253,7 +254,7 @@ router.post('/register', validateBody(registerUserSchema), registerUser);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/login', validateBody(loginUserSchema), loginUser);
+router.post('/login', authLimiter, validateBody(loginUserSchema), loginUser);
 
 /**
  * @swagger
@@ -360,7 +361,7 @@ router.post('/login', validateBody(loginUserSchema), loginUser);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/reset', validateBody(resetPasswordRequestSchema), requestPasswordReset);
+router.post('/reset', passwordResetLimiter, validateBody(resetPasswordRequestSchema), requestPasswordReset);
 
 /**
  * @swagger
@@ -467,6 +468,6 @@ router.post('/reset', validateBody(resetPasswordRequestSchema), requestPasswordR
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/reset', validateBody(resetPasswordConfirmSchema), confirmPasswordReset);
+router.put('/reset', passwordResetLimiter, validateBody(resetPasswordConfirmSchema), confirmPasswordReset);
 
 export default router;

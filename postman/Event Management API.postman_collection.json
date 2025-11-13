@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Event Management API",
-    "description": "Complete API test suite for Event Management System",
+    "description": "Complete API test suite for Venue Booking System",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

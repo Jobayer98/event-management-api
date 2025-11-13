@@ -1,6 +1,5 @@
 node_modules/
 dist/
-logs/
 .kiro
 .env
 .env.local

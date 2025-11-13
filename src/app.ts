@@ -1,12 +1,15 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
+import { apiLimiter } from './middleware/rateLimiter';
 import v1Routes from './api';
 import logger from './config/logger';
 import { swaggerSpec } from './config/swagger';
+import { metricsMiddleware, metricsHandler } from './config/metrics';
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +25,20 @@ class App {
   }
 
   private initializeMiddlewares(): void {
+    // Helmet security headers
+    this.app.use(helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", "data:", "https:"],
+        },
+      },
+      crossOriginOpenerPolicy: false,
+      crossOriginEmbedderPolicy: false, // Allow Swagger UI to work
+    }));
+
     // CORS configuration
     const corsOptions = {
       origin: process.env.NODE_ENV === 'production'
@@ -41,10 +58,19 @@ class App {
       optionsSuccessStatus: 200
     };
 
-    // this.app.use(cors());
-    this.app.use(cors());
+    this.app.use(cors(corsOptions));
+
+    // Trust proxy (for rate limiting behind reverse proxy)
+    this.app.set('trust proxy', 1);
+
     // Request logging middleware
     this.app.use(requestLogger);
+
+    // Metrics middleware
+    this.app.use(metricsMiddleware);
+
+    // Global rate limiter (applied to all routes)
+    this.app.use('/api/', apiLimiter);
 
     // Body parsing middleware - skip only for file upload routes (single/multiple)
     this.app.use((req, res, next) => {
@@ -64,23 +90,18 @@ class App {
       express.urlencoded({ extended: true })(req, res, next);
     });
 
-    // Basic security headers
-    this.app.use((_req, res, next) => {
-      res.header('X-Content-Type-Options', 'nosniff');
-      res.header('X-Frame-Options', 'DENY');
-      res.header('X-XSS-Protection', '1; mode=block');
-      next();
-    });
-
-    logger.info('Middlewares initialized');
+    logger.info('Security middlewares initialized');
   }
 
   private initializeRoutes(): void {
+    // Metrics endpoint (before rate limiting)
+    this.app.get('/api/metrics', metricsHandler);
+
     // Swagger documentation
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
       explorer: true,
       customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'Event Management API Documentation',
+      customSiteTitle: 'Venue Booking System API Documentation',
       swaggerOptions: {
         requestInterceptor: (req: any) => {
           // Don't override Content-Type for multipart/form-data requests (file uploads)

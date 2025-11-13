@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { upload } from '../../../middleware/upload.middleware';
 import { uploadSingleImage, uploadMultipleImages, testUpload, listImages, deleteImage } from '../controllers/uploadController';
 import { authenticateToken, requireRole } from '../../../middleware/auth';
+import { uploadLimiter } from '../../../middleware/rateLimiter';
 
 const router = Router();
 
@@ -38,7 +39,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.post('/single', upload.single('image'), authenticateToken, requireRole(['organizer', 'admin']), uploadSingleImage);
+router.post('/single', uploadLimiter, upload.single('image'), authenticateToken, requireRole(['organizer', 'admin']), uploadSingleImage);
 
 /**
  * @swagger
@@ -71,7 +72,7 @@ router.post('/single', upload.single('image'), authenticateToken, requireRole(['
  *       500:
  *         description: Server error
  */
-router.post('/multiple', upload.array('images', 10), authenticateToken, requireRole(['organizer', 'admin']), uploadMultipleImages);
+router.post('/multiple', uploadLimiter, upload.array('images', 10), authenticateToken, requireRole(['organizer', 'admin']), uploadMultipleImages);
 
 /**
  * @swagger
