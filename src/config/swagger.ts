@@ -22,7 +22,7 @@ const swaggerDefinition: SwaggerDefinition = {
       description: 'Development server'
     },
     {
-      url: 'http://54.151.167.179',
+      url: 'http://18.141.239.148',
       description: 'Production server'
     }
   ],
