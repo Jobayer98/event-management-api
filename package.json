@@ -1,7 +1,7 @@
 {
   "name": "event-management",
   "version": "1.0.0",
-  "description": "Event management system",
+  "description": "Venue Booking System",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

@@ -1,6 +1,6 @@
-# Event Management System
+# Venue Booking System
 
-A comprehensive event management system built with Node.js, TypeScript, Express, Prisma, and PostgreSQL. This system provides complete authentication, user management, and event booking capabilities for both customers and organizers.
+A comprehensive Venue Booking System built with Node.js, TypeScript, Express, Prisma, and PostgreSQL. This system provides complete authentication, user management, and event booking capabilities for both customers and organizers.
 
 ## Features
 

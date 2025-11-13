@@ -101,7 +101,7 @@ class App {
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
       explorer: true,
       customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'Event Management API Documentation',
+      customSiteTitle: 'Venue Booking System API Documentation',
       swaggerOptions: {
         requestInterceptor: (req: any) => {
           // Don't override Content-Type for multipart/form-data requests (file uploads)
